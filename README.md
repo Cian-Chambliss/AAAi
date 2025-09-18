@@ -22,3 +22,23 @@ aaai.textPrompt(config, prompt, function(err, result) {
     }
 });
 ```
+
+Example calling openAI
+
+```javascript
+const aaai = require('AAAi')();
+const config = {
+ "provider" : "openai",
+ "model" : "gpt-4o-mini",
+ "apikey" : "<you api key here>"
+};
+const prompt = 'What is the capital of France?';
+
+aaai.textPrompt(config, prompt, function(err, result) {
+    if (err) {
+        console.error('Error:', err);
+    } else {
+        console.log('Result:', result);
+    }
+});
+```
