@@ -1,5 +1,6 @@
 module.exports = function () {
-    const getProviderDefintion = require("./getProviderDefinition"); 
+    const getProviderDefinition = require("./getProviderDefinition"); 
+    const listModels = require("./listModels");
     const textPrompt = require("./textPrompt"); 
     const listProviders = function () {
         // Currently support providers
@@ -16,8 +17,9 @@ module.exports = function () {
     };
     const ai = {
         textPrompt: textPrompt ,
+        listModels: listModels,
         listProviders: listProviders,
-        getProviderDefintion: getProviderDefintion
+        getProviderDefinition: getProviderDefinition
     };
     return ai;
 };
