@@ -14,5 +14,20 @@
             "description": "url for the mistral service.",
             "optional": true
         }
+    ],
+    "models": [
+        "pixtral-large-latest",
+        "mistral-large-latest",
+        "mistral-medium-latest",
+        "mistral-medium-2505",
+        "mistral-small-latest",
+        "magistral-small-2506",
+        "magistral-medium-2506",
+        "ministral-3b-latest",
+        "ministral-8b-latest",
+        "pixtral-12b-2409",
+        "open-mistral-7b",
+        "open-mixtral-8x7b",
+        "open-mixtral-8x22b"
     ]
 }
