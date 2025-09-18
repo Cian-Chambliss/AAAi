@@ -147,7 +147,7 @@ module.exports = function () {
                     });
                 },
                 //-------------------------------------------------------------------------------------------
-                // Anthropic text prompt driver
+                // Groq text prompt driver
                 "groq": function (config, prompt, callback) {
                     import('@ai-sdk/groq').then((module) => {
                         const createGroq  = module.createGroq;
@@ -182,8 +182,44 @@ module.exports = function () {
                     }).catch((error) => {
                         callback(error.message,null);
                     });
+                },
+                //-------------------------------------------------------------------------------------------
+                // XAI text prompt driver
+                "xai ": function (config, prompt, callback) {
+                    import('@ai-sdk/xai ').then((module) => {
+                        const createXai  = module.createXai;
+                        // Initialize the OpenAI client with your API key
+                        const settings = {
+                            apiKey: config.apikey
+                        };
+                        if (config.baseurl) {
+                            settings.baseURL = config.baseurl;
+                        }
+                        if (config.headers) {
+                            settings.headers = config.headers;
+                        }
+                        try {
+                            const xai = createXai(settings);
+                            import('ai').then((aiModule) => {
+                                const generateText = aiModule.generateText;
+                                generateText({
+                                    model: xai(config.model),
+                                    prompt: prompt,
+                                }).then((result) => {
+                                    callback(null,result.text);
+                                }).catch((error) => {
+                                    callback(error.message,null);
+                                });
+                        }).catch((error) => {
+                                callback(error.message,null);
+                            });
+                        } catch (error) {
+                            callback(error.message,null);
+                        }
+                    }).catch((error) => {
+                        callback(error.message,null);
+                    });
                 }
-
             };
             // Resolve the provider and call the specific dynamic handler
             if (handlers[config.provider]) {
