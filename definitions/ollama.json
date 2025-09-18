@@ -1,0 +1,8 @@
+{
+    "properties" : [
+        {
+            "name" : "baseurl" ,
+            "description" : "url for the ollama service on your network."
+        }
+    ]
+}

@@ -1,0 +1,26 @@
+{
+    "properties": [
+        {
+            "name": "apikey",
+            "description": "API key to use the google endpoint."
+        },
+        {
+            "name": "location",
+            "description": "location of google server."
+        },
+        {
+            "name": "auth",
+            "description": "Googl oauth object."
+        },
+        {
+            "name": "headers",
+            "description": "headers to past to the request.",
+            "optional": true
+        },
+        {
+            "name": "baseurl",
+            "description": "url for the google service.",
+            "optional": true
+        }
+    ]
+}

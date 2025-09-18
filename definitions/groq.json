@@ -1,0 +1,18 @@
+{
+    "properties": [
+        {
+            "name": "apikey",
+            "description": "API key to use the groq endpoint."
+        },
+        {
+            "name": "headers",
+            "description": "headers to past to the request.",
+            "optional": true
+        },
+        {
+            "name": "baseurl",
+            "description": "url for the groq service.",
+            "optional": true
+        }
+    ]
+}
