@@ -185,7 +185,7 @@ module.exports = function () {
                 },
                 //-------------------------------------------------------------------------------------------
                 // XAI text prompt driver
-                "xai ": function (config, prompt, callback) {
+                "xai": function (config, prompt, callback) {
                     import('@ai-sdk/xai ').then((module) => {
                         const createXai  = module.createXai;
                         // Initialize the OpenAI client with your API key
@@ -204,6 +204,43 @@ module.exports = function () {
                                 const generateText = aiModule.generateText;
                                 generateText({
                                     model: xai(config.model),
+                                    prompt: prompt,
+                                }).then((result) => {
+                                    callback(null,result.text);
+                                }).catch((error) => {
+                                    callback(error.message,null);
+                                });
+                        }).catch((error) => {
+                                callback(error.message,null);
+                            });
+                        } catch (error) {
+                            callback(error.message,null);
+                        }
+                    }).catch((error) => {
+                        callback(error.message,null);
+                    });
+                },
+                //-------------------------------------------------------------------------------------------
+                // Mistral  text prompt driver
+                "mistral": function (config, prompt, callback) {
+                    import('@ai-sdk/mistral ').then((module) => {
+                        const createMistral  = module.createMistral;
+                        // Initialize the OpenAI client with your API key
+                        const settings = {
+                            apiKey: config.apikey
+                        };
+                        if (config.baseurl) {
+                            settings.baseURL = config.baseurl;
+                        }
+                        if (config.headers) {
+                            settings.headers = config.headers;
+                        }
+                        try {
+                            const mistral = createMistral(settings);
+                            import('ai').then((aiModule) => {
+                                const generateText = aiModule.generateText;
+                                generateText({
+                                    model: mistral(config.model),
                                     prompt: prompt,
                                 }).then((result) => {
                                     callback(null,result.text);
