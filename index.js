@@ -12,17 +12,14 @@ module.exports = function () {
                         });
                         import('ai').then((aiModule) => {
                             const generateText = aiModule.generateText;
-                            const chatWithOllama = function (prompt) {
-                                generateText({
-                                    model: ollama(config.model), // Replace 'llama3' with your desired model
-                                    prompt: prompt,
-                                }).then((result) => {
-                                    callback(null,result.text);
-                                }).catch((error) => {
-                                    callback(error.message,null);
-                                });
-                            }
-                            chatWithOllama(prompt);
+                            generateText({
+                                model: ollama(config.model), // Replace 'llama3' with your desired model
+                                prompt: prompt,
+                            }).then((result) => {
+                                callback(null,result.text);
+                            }).catch((error) => {
+                                callback(error.message,null);
+                            });
                         }).catch((error) => {
                             callback(error.message,null);
                         });
@@ -58,18 +55,51 @@ module.exports = function () {
                             const openai = createOpenAI(settings);
                             import('ai').then((aiModule) => {
                                 const generateText = aiModule.generateText;
-                                const chatWithOpenAI = function (prompt) {
-                                    generateText({
-                                        model: openai(config.model),
-                                        prompt: prompt,
-                                    }).then((result) => {
-                                        callback(null,result.text);
-                                    }).catch((error) => {
-                                        callback(error.message,null);
-                                    });
-                                }
-                                chatWithOpenAI(prompt);
+                                generateText({
+                                    model: openai(config.model),
+                                    prompt: prompt,
+                                }).then((result) => {
+                                    callback(null,result.text);
+                                }).catch((error) => {
+                                    callback(error.message,null);
+                                });
+                        }).catch((error) => {
+                                callback(error.message,null);
+                            });
+                        } catch (error) {
+                            callback(error.message,null);
+                        }
+                    }).catch((error) => {
+                        callback(error.message,null);
+                    });
+                },
+                //-------------------------------------------------------------------------------------------
+                // google text prompt driver
+                "google": function (config, prompt, callback) {
+                    import('@ai-sdk/google').then((module) => {
+                        const createGoogleGenerativeAI = module.createGoogleGenerativeAI;
+                        const settings = {
+                            apiKey: config.apikey
+                        };
+                        if (config.baseurl) {
+                            settings.baseURL = config.baseurl;
+                        }
+                        if (config.headers) {
+                            settings.headers = config.headers;
+                        }
+                        try {
+                        const google = createGoogleGenerativeAI(settings);
+                        import('ai').then((aiModule) => {
+                            const generateText = aiModule.generateText;
+                            generateText({
+                                model: google(config.model),
+                                prompt: prompt,
+                            }).then((result) => {
+                                callback(null,result.text);
                             }).catch((error) => {
+                                callback(error.message,null);
+                            });
+                        }).catch((error) => {
                                 callback(error.message,null);
                             });
                         } catch (error) {
