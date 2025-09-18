@@ -110,6 +110,48 @@ module.exports = function () {
                     });
                 },
                 //-------------------------------------------------------------------------------------------
+                // google vextex text prompt driver - documentation says this should work with service accounts
+                "google-vertex": function (config, prompt, callback) {
+                    import('@ai-sdk/google-vertex').then((module) => {
+                        const createVertex = module.createVertex;
+                        const settings = {
+                            project: config.project
+                        };
+                        if (config.location ) {
+                            settings.location = config.location ;
+                        }
+                        if (config.auth ) {
+                            settings.googleAuthOptions = config.auth; // supplied auth from https://github.com/googleapis/google-auth-library-nodejs
+                        }
+                        if (config.baseurl) {
+                            settings.baseURL = config.baseurl;
+                        }
+                        if (config.headers) {
+                            settings.headers = config.headers;
+                        }
+                        try {
+                        const vertex = createVertex(settings);
+                        import('ai').then((aiModule) => {
+                            const generateText = aiModule.generateText;
+                            generateText({
+                                model: vertex(config.model),
+                                prompt: prompt,
+                            }).then((result) => {
+                                callback(null,result.text);
+                            }).catch((error) => {
+                                callback(error.message,null);
+                            });
+                        }).catch((error) => {
+                                callback(error.message,null);
+                            });
+                        } catch (error) {
+                            callback(error.message,null);
+                        }
+                    }).catch((error) => {
+                        callback(error.message,null);
+                    });
+                },
+                //-------------------------------------------------------------------------------------------
                 // Anthropic text prompt driver
                 "anthropic": function (config, prompt, callback) {
                     import('@ai-sdk/anthropic').then((module) => {
