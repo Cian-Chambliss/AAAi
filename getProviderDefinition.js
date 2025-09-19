@@ -41,10 +41,12 @@ module.exports = function (provider) {
              return require("./definitions/mistral.json");
         }
     };
+    if( provider == "" )
+        provider = "ollama";
     // Resolve the provider and call the specific dynamic handler
     if (handlers[provider]) {
         return handlers[provider]();
     } else {
-        return { "error" : "Provider not recognized as supported"};
+        return { "error" : `Provider ${provider} not recognized as supported`};
     }
 };
