@@ -7,11 +7,26 @@ module.exports = function (config, callback) {
             if (!url) {
                 url = "http://localhost:11434/api";
             }
+            url = url.replace("localhost:","127.0.0.1:"); // nodeJs 18.15 does not map this - we can remove this when we update nodeJs
             url += "/tags";
-            const http = require('http');
-            http.get(url, (res) => {
+            var httpx = null;
+            const urlP = new URL(url);
+            if( urlP.protocol == "https:") {
+                httpx =  require('https');
+            } else {
+                httpx = require('http');
+            }
+            var options = {
+                hostname : urlP.hostname,
+                port : urlP.port,
+                path : urlP.pathname,
+                method : "GET",
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+            };
+            httpx.get(options, (res) => {
                 let data = '';
-
                 // Collect data chunks
                 res.on('data', (chunk) => {
                     data += chunk;
@@ -32,7 +47,7 @@ module.exports = function (config, callback) {
                     }
                 });
             }).on('error', (err) => {
-                callback(`Error: ${err.message}`,null);
+                callback(`Error: ${err.message} for ${url}`,null);
             });
         }
     };
