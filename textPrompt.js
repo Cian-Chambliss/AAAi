@@ -1,4 +1,36 @@
-module.exports = function (config, prompt, callback) {
+module.exports = function (config, prompt, callback , extra ) {
+    var args = {
+        model:null,
+        prompt: prompt,
+    };
+    if( extra ) {
+        const copyProps = [
+            "system",
+            "toolChoice",
+            "provideOptions",
+            "maxOutputTokens",
+            "maxTokens",
+            "temperature",
+            "topP",
+            "topK",
+            "presencePenalty",
+            "frequencyPenalty",
+            "stopSequences",
+            "seed",
+            "maxRetries",
+            "headers"
+        ];
+        for(var i = 0 ; i < copyProps.length ; ++i ) {
+            var propName = copyProps[i];
+            if( extra[propName] ) {
+                args[propName] = extra[propName];
+            } else if( extra[propName.toLowerCase()]) {
+                args[propName] = extra[propName.toLowerCase()];
+            }
+        }
+        //abortSignal - look at implementing
+        //Tool Calling - loop at implementing - need some examples 
+    }
     const handlers = {
         //-------------------------------------------------------------------------------------------
         // OLLAMA AI text prompt driver
@@ -10,10 +42,8 @@ module.exports = function (config, prompt, callback) {
                 });
                 import('ai').then((aiModule) => {
                     const generateText = aiModule.generateText;
-                    generateText({
-                        model: ollama(config.model), // Replace 'llama3' with your desired model
-                        prompt: prompt,
-                    }).then((result) => {
+                    args.model = ollama(config.model);
+                    generateText(args).then((result) => {
                         callback(null, result.text);
                     }).catch((error) => {
                         callback(error.message, null);
@@ -53,10 +83,8 @@ module.exports = function (config, prompt, callback) {
                     const openai = createOpenAI(settings);
                     import('ai').then((aiModule) => {
                         const generateText = aiModule.generateText;
-                        generateText({
-                            model: openai(config.model),
-                            prompt: prompt,
-                        }).then((result) => {
+                        args.model = openai(config.model);
+                        generateText(args).then((result) => {
                             callback(null, result.text);
                         }).catch((error) => {
                             callback(error.message, null);
@@ -89,10 +117,8 @@ module.exports = function (config, prompt, callback) {
                     const google = createGoogleGenerativeAI(settings);
                     import('ai').then((aiModule) => {
                         const generateText = aiModule.generateText;
-                        generateText({
-                            model: google(config.model),
-                            prompt: prompt,
-                        }).then((result) => {
+                        args.model = google(config.model);
+                        generateText(args).then((result) => {
                             callback(null, result.text);
                         }).catch((error) => {
                             callback(error.message, null);
@@ -131,10 +157,8 @@ module.exports = function (config, prompt, callback) {
                     const vertex = createVertex(settings);
                     import('ai').then((aiModule) => {
                         const generateText = aiModule.generateText;
-                        generateText({
-                            model: vertex(config.model),
-                            prompt: prompt,
-                        }).then((result) => {
+                        args.model = vertex(config.model);
+                        generateText(args).then((result) => {
                             callback(null, result.text);
                         }).catch((error) => {
                             callback(error.message, null);
@@ -168,10 +192,8 @@ module.exports = function (config, prompt, callback) {
                     const anthropic = createAnthropic(settings);
                     import('ai').then((aiModule) => {
                         const generateText = aiModule.generateText;
-                        generateText({
-                            model: anthropic(config.model),
-                            prompt: prompt,
-                        }).then((result) => {
+                        args.model = anthropic(config.model);
+                        generateText(args).then((result) => {
                             callback(null, result.text);
                         }).catch((error) => {
                             callback(error.message, null);
@@ -205,10 +227,8 @@ module.exports = function (config, prompt, callback) {
                     const groq = createGroq(settings);
                     import('ai').then((aiModule) => {
                         const generateText = aiModule.generateText;
-                        generateText({
-                            model: groq(config.model),
-                            prompt: prompt,
-                        }).then((result) => {
+                        args.model = groq(config.model);
+                        generateText(args).then((result) => {
                             callback(null, result.text);
                         }).catch((error) => {
                             callback(error.message, null);
@@ -242,10 +262,8 @@ module.exports = function (config, prompt, callback) {
                     const xai = createXai(settings);
                     import('ai').then((aiModule) => {
                         const generateText = aiModule.generateText;
-                        generateText({
-                            model: xai(config.model),
-                            prompt: prompt,
-                        }).then((result) => {
+                        args.model = xai(config.model);
+                        generateText(args).then((result) => {
                             callback(null, result.text);
                         }).catch((error) => {
                             callback(error.message, null);
@@ -279,10 +297,8 @@ module.exports = function (config, prompt, callback) {
                     const mistral = createMistral(settings);
                     import('ai').then((aiModule) => {
                         const generateText = aiModule.generateText;
-                        generateText({
-                            model: mistral(config.model),
-                            prompt: prompt,
-                        }).then((result) => {
+                        args.model = mistral(config.model);
+                        generateText(args).then((result) => {
                             callback(null, result.text);
                         }).catch((error) => {
                             callback(error.message, null);

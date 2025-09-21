@@ -2,6 +2,7 @@
     "properties": [
         {
             "name": "apikey",
+            "label" : "API Key" ,
             "description": "API key to use the mistral endpoint."
         },
         {

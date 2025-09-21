@@ -2,12 +2,13 @@
     "properties": [
         {
             "name": "apikey",
+            "label" : "API Key" ,
             "description": "API key to use the anthropic endpoint."
         },
         {
             "name": "headers",
             "description": "headers to past to the request.",
-            "optional": true
+            "optional": true 
         },
         {
             "name": "baseurl",
