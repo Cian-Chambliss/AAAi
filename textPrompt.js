@@ -6,9 +6,10 @@ module.exports = function (config, prompt, callback , extra ) {
     if( Array.isArray(prompt) ) {
         if(  prompt.length ) {
             if( prompt[0].role ) {
+                var ai = require('ai');
                 args = {
                     model:null,
-                    messages: prompt
+                    messages: ai.convertToModelMessages(prompt)
                 }
             }
         }
