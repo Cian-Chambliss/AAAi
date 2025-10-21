@@ -57,7 +57,9 @@ module.exports = function (config, prompt, callback , extra ) {
         "ollama": function (config, prompt, callback) {
             import('ollama-ai-provider-v2').then((module) => {
                 const createOllama = module.createOllama;
-                const url = config.baseurl.replace("localhost:","127.0.0.1:"); // nodeJs 18.15 does not map this - we can remove this when we update nodeJs
+                var url = null;
+                if( config.baseurl )
+                    url = config.baseurl.replace("localhost:","127.0.0.1:"); // nodeJs 18.15 does not map this - we can remove this when we update nodeJs
                 const ollama = createOllama({
                     baseURL: url
                 });
