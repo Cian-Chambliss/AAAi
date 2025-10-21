@@ -12,12 +12,13 @@ module.exports = function (config, prompt, callback , extra ) {
                 }
             }
         }
-    } else if (typeof args.prompt === 'object' &&  args.prompt !== null) {
-        if( args.prompt.prompt ) {
-            if( args.prompt.image ) {
-                args.image = args.prompt.image;
+    } else if (typeof prompt === 'object' &&  prompt !== null) {
+        if( prompt.prompt ) {
+            const keys = Object.keys(prompt);
+            for( var i = 0 ; i < keys.length ; ++i )
+            {
+                args[keys[i]] = prompt[keys[i]];
             }
-            args.prompt = args.prompt.prompt;
         } 
     }
 
