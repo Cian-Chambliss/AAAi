@@ -3,6 +3,24 @@ module.exports = function (config, prompt, callback , extra ) {
         model:null,
         prompt: prompt,
     };
+    if( Array.isArray(prompt) ) {
+        if(  prompt.length ) {
+            if( prompt[0].role ) {
+                args = {
+                    model:null,
+                    messages: prompt
+                }
+            }
+        }
+    } else if (typeof args.prompt === 'object' &&  args.prompt !== null) {
+        if( args.prompt.prompt ) {
+            if( args.prompt.image ) {
+                args.image = args.prompt.image;
+            }
+            args.prompt = args.prompt.prompt;
+        } 
+    }
+
     if( extra ) {
         const copyProps = [
             "system",
