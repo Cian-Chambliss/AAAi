@@ -4,6 +4,7 @@ module.exports = function () {
     const textPrompt = require("./textPrompt"); 
     const imagePrompt = require("./imagePrompt"); 
     const speechPrompt = require("./speechPrompt"); 
+    const transcribePrompt = require("./transcribePrompt"); 
     const filesLoad = require("./filesLoad");
     const listProviders = function () {
         // Currently support providers
@@ -22,6 +23,7 @@ module.exports = function () {
         textPrompt: textPrompt ,
         imagePrompt: imagePrompt ,
         speechPrompt: speechPrompt ,
+        transcribePrompt: transcribePrompt,
         filesLoad: filesLoad ,
         listModels: listModels,
         listProviders: listProviders,
