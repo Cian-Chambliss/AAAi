@@ -3,6 +3,7 @@ module.exports = function () {
     const listModels = require("./listModels");
     const textPrompt = require("./textPrompt"); 
     const imagePrompt = require("./imagePrompt"); 
+    const filesLoad = require("./filesLoad");
     const listProviders = function () {
         // Currently support providers
         return [
@@ -19,6 +20,7 @@ module.exports = function () {
     const ai = {
         textPrompt: textPrompt ,
         imagePrompt: imagePrompt ,
+        filesLoad: filesLoad ,
         listModels: listModels,
         listProviders: listProviders,
         getProviderDefinition: getProviderDefinition
