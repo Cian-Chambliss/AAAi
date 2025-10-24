@@ -68,7 +68,6 @@ module.exports = function (config, prompt, callback , extra ) {
         //-------------------------------------------------------------------------------------------
         // OLLAMA AI text prompt driver
         "ollama": function (config, prompt, callback) {
-            /*
             import('ollama-ai-provider-v2').then((module) => {
                 const createOllama = module.createOllama;
                 var url = null;
@@ -79,7 +78,7 @@ module.exports = function (config, prompt, callback , extra ) {
                 });
                 import('ai').then((aiModule) => {
                     const generateImage = aiModule.experimental_generateImage;
-                    args.model = ollama(config.model);
+                    args.model = ollama.image(config.model);
                     generateImage(args).then((result) => {
                         callback(null, result);
                     }).catch((error) => {
@@ -90,8 +89,7 @@ module.exports = function (config, prompt, callback , extra ) {
                 });
             }).catch((error) => {
                 callback(error.message, null);
-            });*/
-            callback("Ollama does not support image generation", null);
+            });
         },
         //-------------------------------------------------------------------------------------------
         // OPENAI text prompt driver
@@ -155,7 +153,7 @@ module.exports = function (config, prompt, callback , extra ) {
                     const google = createGoogleGenerativeAI(settings);
                     import('ai').then((aiModule) => {
                         const generateImage = aiModule.experimental_generateImage;
-                        args.model = google(config.model);
+                        args.model = google.image(config.model);
                         generateImage(args).then((result) => {
                             callback(null, result);
                         }).catch((error) => {
@@ -192,7 +190,7 @@ module.exports = function (config, prompt, callback , extra ) {
                     settings.headers = config.headers;
                 }
                 try {
-                    const vertex = createVertex(settings);
+                    const vertex = createVertex.image(settings);
                     import('ai').then((aiModule) => {
                         const generateImage = aiModule.experimental_generateImage;
                         args.model = vertex(config.model);
@@ -227,7 +225,7 @@ module.exports = function (config, prompt, callback , extra ) {
                     settings.headers = config.headers;
                 }
                 try {
-                    const anthropic = createAnthropic(settings);
+                    const anthropic = createAnthropic.image(settings);
                     import('ai').then((aiModule) => {
                         const generateImage = aiModule.experimental_generateImage;
                         args.model = anthropic(config.model);
@@ -262,7 +260,7 @@ module.exports = function (config, prompt, callback , extra ) {
                     settings.headers = config.headers;
                 }
                 try {
-                    const groq = createGroq(settings);
+                    const groq = createGroq.image(settings);
                     import('ai').then((aiModule) => {
                         const generateImage = aiModule.experimental_generateImage;
                         args.model = groq(config.model);
@@ -297,7 +295,7 @@ module.exports = function (config, prompt, callback , extra ) {
                     settings.headers = config.headers;
                 }
                 try {
-                    const xai = createXai(settings);
+                    const xai = createXai.image(settings);
                     import('ai').then((aiModule) => {
                         const generateImage = aiModule.experimental_generateImage;
                         args.model = xai(config.model);
@@ -332,7 +330,7 @@ module.exports = function (config, prompt, callback , extra ) {
                     settings.headers = config.headers;
                 }
                 try {
-                    const mistral = createMistral(settings);
+                    const mistral = createMistral.image(settings);
                     import('ai').then((aiModule) => {
                         const generateImage = aiModule.experimental_generateImage;
                         args.model = mistral(config.model);
