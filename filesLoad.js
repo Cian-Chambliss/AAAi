@@ -4,14 +4,20 @@ module.exports = function (files, callback , ctx ) {
     var fs = require("fs");
     var path = require('path');
     var items = [];
-    var encoding = null;
+    var _encoding = null;
     if( ctx ) {
-        encoding = ctx.encoding;
+        _encoding = ctx.encoding;
     }
     import('mime').then((mime) => {
         var countDown = files.length;
         files.forEach(function(val,index) {
             var extn = path.extname(val);
+            var encoding = null;
+            if (typeof _encoding === "function") {
+                encoding = _encoding(extn,val);
+            } else {
+                encoding = _encoding;
+            }
             if(extn[0] == '.') {
                 extn = extn.substring(1);
             }
