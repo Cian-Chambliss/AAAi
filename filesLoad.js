@@ -16,13 +16,18 @@ module.exports = function (files, callback , ctx ) {
                 extn = extn.substring(1);
             }
             var item = null;
-            if( encoding == "base64" ) {
+            if( encoding == "base64"  ) {
                 item = {
                     "type": "file",
                     "mediaType":  mime.default.getType(extn),
                     "filename": val,
                     "url": null
                 };
+            } else if( encoding == "utf8" ) {
+                item = {
+                    "type": "text",
+                   "text": null
+               };
             } else {
                 item = {
                     "type": "file",
@@ -39,8 +44,13 @@ module.exports = function (files, callback , ctx ) {
                 }
                 if( encoding == "base64" ) {
                     var base64String = data.toString('base64');
-                    base64String = "data:image/png;base64," + base64String;
+                    base64String = "data:"+item.mediaType+";base64," + base64String;
                     item.url = base64String;
+                } else if( encoding == "utf8" ) {
+                   item.text = data.toString("utf8");
+                   //var utf8String = data.toString('utf8');
+                   // utf8String = "data:"+item.mediaType+";utf8," + utf8String;
+                   // item.url = utf8String;
                 } else {
                     item.data = data;
                 }
