@@ -49,6 +49,60 @@ module.exports = function (config, callback) {
             }).on('error', (err) => {
                 callback(`Error: ${err.message} for ${url}`,null);
             });
+        },
+        //-------------------------------------------------------------------------------------------
+        // OPENAI AI text prompt driver
+        "openai": function (config, callback,fallback) {
+            var url = config.baseurl;
+            if (!url) {
+                url = "https://api.openai.com/v1/models";
+            }
+            var httpx = null;
+            const urlP = new URL(url);
+            if( urlP.protocol == "https:") {
+                httpx =  require('https');
+            } else {
+                httpx = require('http');
+            }
+            var options = {
+                hostname : urlP.hostname,
+                port : urlP.port,
+                path : urlP.pathname,
+                method : "GET",
+                headers: {
+                    'Content-Type': 'application/json',
+                     'Authorization': `Bearer ${config.apikey}`
+                },
+            };
+            httpx.get(options, (res) => {
+                let data = '';
+                // Collect data chunks
+                res.on('data', (chunk) => {
+                    data += chunk;
+                });
+                // Process the complete response
+                res.on('end', () => {
+                    console.log(data);
+                    try {
+                        const obj = JSON.parse(data);
+                        const listed = [];
+                        const models = obj.data;
+                        for(var i = 0  ; i < models.length ; ++i ) {
+                            if(models[i].id)
+                                listed.push(models[i].id);
+                        }
+                        if( listed.length )
+                            callback(null,listed);
+                        else
+                            fallback("openai",callback);
+                    }  catch (error) {
+                        console.log(error);
+                        fallback("openai",callback);
+                    }
+                });
+            }).on('error', (err) => {
+                fallback("openai",callback);
+            });
         }
     };
     if (!config) {
@@ -57,12 +111,9 @@ module.exports = function (config, callback) {
     } else if (typeof config !== 'object') {
         config = { provider : config };
     }
-    // Resolve the provider and call the specific dynamic handler
-    if (handlers[config.provider]) {
-        return handlers[config.provider](config, callback);
-    } else {
+    const fallback = function (provider,callback) {
         const getProviderDefinition = require("./getProviderDefinition");
-        const def = getProviderDefinition(config.provider);
+        const def = getProviderDefinition(provider);
         var models = null;
         if (def) {
             if (def.models) {
@@ -74,5 +125,11 @@ module.exports = function (config, callback) {
         } else {
             callback("Error - could not find any models",null);
         }
+    };
+    // Resolve the provider and call the specific dynamic handler
+    if (handlers[config.provider]) {
+        return handlers[config.provider](config, callback, fallback);
+    } else {
+        fallback(config.provider);
     }
 };
