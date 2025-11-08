@@ -11,6 +11,11 @@ module.exports = function (provider) {
             return require("./definitions/openai.json");
         },
         //-------------------------------------------------------------------------------------------
+        // OPENAI text prompt driver
+        "openai-compatible": function () {
+            return require("./definitions/openai-compatible.json");
+        },
+        //-------------------------------------------------------------------------------------------
         // google text prompt driver
         "google": function () {
             return require("./definitions/google.json");

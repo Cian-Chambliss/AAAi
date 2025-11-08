@@ -22,7 +22,6 @@ module.exports = function (config, prompt, callback , extra ) {
             }
         } 
     }
-
     if( extra ) {
         const copyProps = [
             "system",
@@ -67,7 +66,7 @@ module.exports = function (config, prompt, callback , extra ) {
                     const generateText = aiModule.generateText;
                     args.model = ollama(config.model);
                     generateText(args).then((result) => {
-                        callback(null, result.text);
+                        callback(null, result.text,result);
                     }).catch((error) => {
                         callback(error.message, null);
                     });
@@ -108,7 +107,51 @@ module.exports = function (config, prompt, callback , extra ) {
                         const generateText = aiModule.generateText;
                         args.model = openai(config.model);
                         generateText(args).then((result) => {
-                            callback(null, result.text);
+                            callback(null, result.text,result);
+                        }).catch((error) => {
+                            callback(error.message, null);
+                        });
+                    }).catch((error) => {
+                        callback(error.message, null);
+                    });
+                } catch (error) {
+                    callback(error.message, null);
+                }
+            }).catch((error) => {
+                callback(error.message, null);
+            });
+        },
+        //-------------------------------------------------------------------------------------------
+        // OPENAI compatible text prompt driver
+        "openai-compatible": function (config, prompt, callback) {
+            import('@ai-sdk/openai-compatible').then((module) => {
+                const createOpenAI = module.createOpenAICompatible;
+                // Initialize the OpenAI client with your API key
+                const settings = {
+                    apiKey: config.apikey
+                };
+                if (config.baseurl) {
+                    settings.baseURL = config.baseurl;
+                }
+                if (config.name) {
+                    settings.name = config.name;
+                }
+                if (config.organization) {
+                    settings.organization = config.organization;
+                }
+                if (config.project) {
+                    settings.project = config.project;
+                }
+                if (config.headers) {
+                    settings.headers = config.headers;
+                }
+                try {
+                    const openai = createOpenAI(settings);
+                    import('ai').then((aiModule) => {
+                        const generateText = aiModule.generateText;
+                        args.model = openai(config.model);
+                        generateText(args).then((result) => {
+                            callback(null, result.text,result);
                         }).catch((error) => {
                             callback(error.message, null);
                         });
@@ -142,7 +185,7 @@ module.exports = function (config, prompt, callback , extra ) {
                         const generateText = aiModule.generateText;
                         args.model = google(config.model);
                         generateText(args).then((result) => {
-                            callback(null, result.text);
+                            callback(null, result.text,result);
                         }).catch((error) => {
                             callback(error.message, null);
                         });
@@ -182,7 +225,7 @@ module.exports = function (config, prompt, callback , extra ) {
                         const generateText = aiModule.generateText;
                         args.model = vertex(config.model);
                         generateText(args).then((result) => {
-                            callback(null, result.text);
+                            callback(null, result.text,result);
                         }).catch((error) => {
                             callback(error.message, null);
                         });
@@ -217,7 +260,7 @@ module.exports = function (config, prompt, callback , extra ) {
                         const generateText = aiModule.generateText;
                         args.model = anthropic(config.model);
                         generateText(args).then((result) => {
-                            callback(null, result.text);
+                            callback(null, result.text,result);
                         }).catch((error) => {
                             callback(error.message, null);
                         });
@@ -252,7 +295,7 @@ module.exports = function (config, prompt, callback , extra ) {
                         const generateText = aiModule.generateText;
                         args.model = groq(config.model);
                         generateText(args).then((result) => {
-                            callback(null, result.text);
+                            callback(null, result.text,result);
                         }).catch((error) => {
                             callback(error.message, null);
                         });
@@ -287,7 +330,7 @@ module.exports = function (config, prompt, callback , extra ) {
                         const generateText = aiModule.generateText;
                         args.model = xai(config.model);
                         generateText(args).then((result) => {
-                            callback(null, result.text);
+                            callback(null, result.text,result);
                         }).catch((error) => {
                             callback(error.message, null);
                         });
@@ -322,7 +365,7 @@ module.exports = function (config, prompt, callback , extra ) {
                         const generateText = aiModule.generateText;
                         args.model = mistral(config.model);
                         generateText(args).then((result) => {
-                            callback(null, result.text);
+                            callback(null, result.text , result);
                         }).catch((error) => {
                             callback(error.message, null);
                         });

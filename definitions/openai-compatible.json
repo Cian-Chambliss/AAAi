@@ -1,0 +1,22 @@
+{
+    "properties": [
+        {
+            "name": "apikey",
+            "label" : "API Key" ,
+            "description": "API key to use the openAI endpoint."
+        },
+        {
+            "name": "headers",
+            "description": "headers to past to the request.",
+            "optional": true
+        },
+        {
+            "name": "baseurl",
+            "description": "url for the openai service.",
+            "optional": true
+        }
+    ],
+    "models": [
+        "lamma"
+    ]
+}

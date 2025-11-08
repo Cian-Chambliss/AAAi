@@ -136,6 +136,50 @@ module.exports = function (config, prompt, callback , extra ) {
             });
         },
         //-------------------------------------------------------------------------------------------
+        // OPENAI text prompt driver
+        "openai-compatible": function (config, prompt, callback) {
+            import('@ai-sdk/openai-compatible').then((module) => {
+                const createOpenAI = module.createOpenAICompatible;
+                // Initialize the OpenAI client with your API key
+                const settings = {
+                    apiKey: config.apikey
+                };
+                if (config.baseurl) {
+                    settings.baseURL = config.baseurl;
+                }
+                if (config.name) {
+                    settings.name = config.name;
+                }
+                if (config.organization) {
+                    settings.organization = config.organization;
+                }
+                if (config.project) {
+                    settings.project = config.project;
+                }
+                if (config.headers) {
+                    settings.headers = config.headers;
+                }
+                try {
+                    const openai = createOpenAI(settings);
+                    import('ai').then((aiModule) => {
+                        const generateImage = aiModule.experimental_generateImage;
+                        args.model = openai.image(config.model);
+                        generateImage(args).then((result) => {
+                            callback(null, result);
+                        }).catch((error) => {
+                            callback(error.message, null);
+                        });
+                    }).catch((error) => {
+                        callback(error.message, null);
+                    });
+                } catch (error) {
+                    callback(error.message, null);
+                }
+            }).catch((error) => {
+                callback(error.message, null);
+            });
+        },        
+        //-------------------------------------------------------------------------------------------
         // google text prompt driver
         "google": function (config, prompt, callback) {
             import('@ai-sdk/google').then((module) => {
