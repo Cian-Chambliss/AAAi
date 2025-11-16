@@ -6,11 +6,13 @@ module.exports = function () {
     const speechPrompt = require("./speechPrompt"); 
     const transcribePrompt = require("./transcribePrompt"); 
     const filesLoad = require("./filesLoad");
+    const streamTextPrompt = require("./streamTextPrompt");
     const listProviders = function () {
         // Currently support providers
         return [
             "ollama",
             "openai",
+            "openai-compatible",
             "google",
             "google-vertex",
             "anthropic",
@@ -21,6 +23,7 @@ module.exports = function () {
     };
     const ai = {
         textPrompt: textPrompt ,
+        streamTextPrompt : streamTextPrompt,
         imagePrompt: imagePrompt ,
         speechPrompt: speechPrompt ,
         transcribePrompt: transcribePrompt,
