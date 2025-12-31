@@ -44,6 +44,11 @@ module.exports = function (provider) {
         // Mistral  text prompt driver
         "mistral": function () {
              return require("./definitions/mistral.json");
+        },
+        //-------------------------------------------------------------------------------------------
+        // Runware  text prompt driver
+        "runware": function () {
+             return require("./definitions/runware.json");
         }
     };
     if( provider == "" )
