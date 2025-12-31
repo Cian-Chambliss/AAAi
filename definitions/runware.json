@@ -1,0 +1,35 @@
+{
+    "properties": [
+        {
+            "name": "apikey",
+            "label" : "API Key" ,
+            "description": "API key to use the mistral endpoint."
+        },
+        {
+            "name": "headers",
+            "description": "headers to past to the request.",
+            "optional": true
+        },
+        {
+            "name": "baseurl",
+            "description": "url for the mistral service.",
+            "optional": true
+        }
+    ],
+    "models": [
+        "civitai:38784@44716",
+        "civitai:38784@44876",
+        "civitai:38784@44877",
+        "civitai:38784@44795",
+        "civitai:38784@44774",
+        "runware:20@1",
+        "runware:25@1",
+        "runware:26@1",
+        "runware:27@1",
+        "runware:28@1",
+        "runware:29@1",
+        "runware:30@1",
+        "runware:31@1"
+    ]
+}
+ 

@@ -18,7 +18,8 @@ module.exports = function () {
             "anthropic",
             "groq",
             "xai",
-            "mistral"
+            "mistral",
+            "runware"
         ];
     };
     const ai = {

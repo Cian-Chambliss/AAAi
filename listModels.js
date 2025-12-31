@@ -103,6 +103,60 @@ module.exports = function (config, callback) {
             }).on('error', (err) => {
                 fallback("openai",callback);
             });
+        },
+        //-------------------------------------------------------------------------------------------
+        // RUNWARE AI text prompt driver
+        "runware" : function (config, callback,fallback) {
+            var url = config.baseurl;
+            if (!url) {
+                url = "https://api.runware.ai/v1/models";
+            }
+            var httpx = null;
+            const urlP = new URL(url);
+            if( urlP.protocol == "https:") {
+                httpx =  require('https');
+            } else {
+                httpx = require('http');
+            }
+            var options = {
+                hostname : urlP.hostname,
+                port : urlP.port,
+                path : urlP.pathname,
+                method : "GET",
+                headers: {
+                    'Content-Type': 'application/json',
+                     'Authorization': `Bearer ${config.apikey}`
+                },
+            };
+            httpx.get(options, (res) => {
+                let data = '';
+                // Collect data chunks
+                res.on('data', (chunk) => {
+                    data += chunk;
+                });
+                // Process the complete response
+                res.on('end', () => {
+                    console.log(data);
+                    try {
+                        const obj = JSON.parse(data);
+                        const listed = [];
+                        const models = obj.data;
+                        for(var i = 0  ; i < models.length ; ++i ) {
+                            if(models[i].id)
+                                listed.push(models[i].id);
+                        }
+                        if( listed.length )
+                            callback(null,listed);
+                        else
+                            fallback("runware",callback);
+                    }  catch (error) {
+                        console.log(error);
+                        fallback("runware",callback);
+                    }
+                });
+            }).on('error', (err) => {
+                fallback("runware",callback);
+            });
         }
     };
     if (!config) {

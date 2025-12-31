@@ -392,6 +392,41 @@ module.exports = function (config, prompt, callback , extra ) {
             }).catch((error) => {
                 callback(error.message, null);
             });
+        },
+        //-------------------------------------------------------------------------------------------
+        // Runware image prompt driver
+        "runware":function (config, prompt, callback) {
+            import('@runware/ai-sdk-provider').then((module) => {
+                const createRunware = module.createRunware;
+                // Initialize the OpenAI client with your API key
+                const settings = {
+                    apiKey: config.apikey
+                };
+                if (config.baseurl) {
+                    settings.baseURL = config.baseurl;
+                }
+                if (config.headers) {
+                    settings.headers = config.headers;
+                }
+                try {
+                    const runware = createRunware(settings);
+                    import('ai').then((aiModule) => {
+                        const generateImage = aiModule.experimental_generateImage;
+                        args.model = runware.image(config.model);
+                        generateImage(args).then((result) => {
+                            callback(null, result);
+                        }).catch((error) => {
+                            callback(error.message, null);
+                        });
+                    }).catch((error) => {
+                        callback(error.message, null);
+                    });
+                } catch (error) {
+                    callback(error.message, null);
+                }
+            }).catch((error) => {
+                callback(error.message, null);
+            });
         }
     };
     // Resolve the provider and call the specific dynamic handler
