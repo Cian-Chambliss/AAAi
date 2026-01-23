@@ -1,7 +1,18 @@
 module.exports = function (config, prompt, callback , extra ) {
     var numberOfImages  = 1;
     var imageSize = '1024x1024';
-
+    var processResponse = function(response) {} ;
+    if( config.trackCallback ) {    
+        processResponse = function( response ) {
+            var trackingData = { 
+                  config : config
+                , inputTokens : response.usage.inputTokens
+                , outputTokens : response.usage.outputTokens
+                , totalTokens : response.usage.totalTokens 
+            };
+            config.trackCallback( trackingData );
+        };
+    }
     if( extra.imagesize ) {
         imageSize = extra.imagesize;
     }
@@ -80,6 +91,7 @@ module.exports = function (config, prompt, callback , extra ) {
                     const generateImage = aiModule.experimental_generateImage;
                     args.model = ollama.image(config.model);
                     generateImage(args).then((result) => {
+                        processResponse(result);
                         callback(null, result);
                     }).catch((error) => {
                         callback(error.message, null);
@@ -121,6 +133,7 @@ module.exports = function (config, prompt, callback , extra ) {
                         const generateImage = aiModule.experimental_generateImage;
                         args.model = openai.image(config.model);
                         generateImage(args).then((result) => {
+                            processResponse(result);
                             callback(null, result);
                         }).catch((error) => {
                             callback(error.message, null);
@@ -165,6 +178,7 @@ module.exports = function (config, prompt, callback , extra ) {
                         const generateImage = aiModule.experimental_generateImage;
                         args.model = openai.image(config.model);
                         generateImage(args).then((result) => {
+                            processResponse(result);
                             callback(null, result);
                         }).catch((error) => {
                             callback(error.message, null);
@@ -199,6 +213,7 @@ module.exports = function (config, prompt, callback , extra ) {
                         const generateImage = aiModule.experimental_generateImage;
                         args.model = google.image(config.model);
                         generateImage(args).then((result) => {
+                            processResponse(result);
                             callback(null, result);
                         }).catch((error) => {
                             callback(error.message, null);
@@ -239,6 +254,7 @@ module.exports = function (config, prompt, callback , extra ) {
                         const generateImage = aiModule.experimental_generateImage;
                         args.model = vertex(config.model);
                         generateImage(args).then((result) => {
+                            processResponse(result);
                             callback(null, result);
                         }).catch((error) => {
                             callback(error.message, null);
@@ -274,6 +290,7 @@ module.exports = function (config, prompt, callback , extra ) {
                         const generateImage = aiModule.experimental_generateImage;
                         args.model = anthropic(config.model);
                         generateImage(args).then((result) => {
+                            processResponse(result);
                             callback(null, result);
                         }).catch((error) => {
                             callback(error.message, null);
@@ -309,6 +326,7 @@ module.exports = function (config, prompt, callback , extra ) {
                         const generateImage = aiModule.experimental_generateImage;
                         args.model = groq(config.model);
                         generateImages(args).then((result) => {
+                            processResponse(result);
                             callback(null, result);
                         }).catch((error) => {
                             callback(error.message, null);
@@ -344,6 +362,7 @@ module.exports = function (config, prompt, callback , extra ) {
                         const generateImage = aiModule.experimental_generateImage;
                         args.model = xai(config.model);
                         generateImage(args).then((result) => {
+                            processResponse(result);
                             callback(null, result);
                         }).catch((error) => {
                             callback(error.message, null);
@@ -379,6 +398,7 @@ module.exports = function (config, prompt, callback , extra ) {
                         const generateImage = aiModule.experimental_generateImage;
                         args.model = mistral(config.model);
                         generateImage(args).then((result) => {
+                            processResponse(result);
                             callback(null, result);
                         }).catch((error) => {
                             callback(error.message, null);
@@ -414,6 +434,7 @@ module.exports = function (config, prompt, callback , extra ) {
                         const generateImage = aiModule.experimental_generateImage;
                         args.model = runware.image(config.model);
                         generateImage(args).then((result) => {
+                            processResponse(result);
                             callback(null, result);
                         }).catch((error) => {
                             callback(error.message, null);

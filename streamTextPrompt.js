@@ -3,6 +3,18 @@ module.exports = function (config, prompt, callback , eventcallback , extra ) {
         model:null,
         prompt: prompt,
     };
+    var onFinishImpl = null;
+    if( config.trackCallback ) {    
+        onFinishImpl = function( response ) {
+            var trackingData = { 
+                  config : config
+                , inputTokens : response.usage.inputTokens
+                , outputTokens : response.usage.outputTokens
+                , totalTokens : response.usage.totalTokens 
+            };
+            config.trackCallback( trackingData );
+        };
+    }
     if( Array.isArray(prompt) ) {
         if(  prompt.length ) {
             if( prompt[0].role ) {
@@ -67,6 +79,9 @@ module.exports = function (config, prompt, callback , eventcallback , extra ) {
                     const controller = new AbortController(); 
                     args.model = ollama(config.model);
                     args.signal = controller.signal;
+                    if( onFinishImpl ) {
+                        args.onFinish = onFinishImpl;
+                    }
                     const streamResult = streamText(args);
                     var allText = "";
                     const asyncIterator = streamResult.textStream[Symbol.asyncIterator]();
@@ -84,10 +99,10 @@ module.exports = function (config, prompt, callback , eventcallback , extra ) {
                         if (!result.done) {
                             processNext(); // Recursively call to process the next item
                         } else {
-                            callback(null, allText);
+                            callback(null, allText, streamResult);
                         }
                         }).catch(error => {
-                            callback(error.message, allText);
+                            callback(error.message, allText, streamResult );
                         });
                     }
                     processNext();
@@ -130,6 +145,9 @@ module.exports = function (config, prompt, callback , eventcallback , extra ) {
 
                         args.model = openai(config.model);
                         args.signal = controller.signal;
+                        if( onFinishImpl ) {
+                             args.onFinish = onFinishImpl;
+                        }
                         const streamResult = streamText(args);
                         var allText = "";
                         const asyncIterator = streamResult.textStream[Symbol.asyncIterator]();
@@ -195,6 +213,9 @@ module.exports = function (config, prompt, callback , eventcallback , extra ) {
                         const controller = new AbortController(); 
                         args.model = openai(config.model);
                         args.signal = controller.signal;
+                        if( onFinishImpl ) {
+                            args.onFinish = onFinishImpl;
+                        }
                         const streamResult = streamText(args);
                         var allText = "";
                         const asyncIterator = streamResult.textStream[Symbol.asyncIterator]();
@@ -250,6 +271,9 @@ module.exports = function (config, prompt, callback , eventcallback , extra ) {
                         const controller = new AbortController(); 
                         args.model = google(config.model);
                         args.signal = controller.signal;
+                        if( onFinishImpl ) {
+                            args.onFinish = onFinishImpl;
+                        }
                         const streamResult = streamText(args);
                         var allText = "";
                         const asyncIterator = streamResult.textStream[Symbol.asyncIterator]();
@@ -311,6 +335,9 @@ module.exports = function (config, prompt, callback , eventcallback , extra ) {
                         const controller = new AbortController(); 
                         args.model = vertex(config.model);
                         args.signal = controller.signal;
+                        if( onFinishImpl ) {
+                            args.onFinish = onFinishImpl;
+                        }
                         const streamResult = streamText(args);
                         var allText = "";
                         const asyncIterator = streamResult.textStream[Symbol.asyncIterator]();
@@ -368,6 +395,9 @@ module.exports = function (config, prompt, callback , eventcallback , extra ) {
                         const controller = new AbortController(); 
                         args.model = anthropic(config.model);
                         args.signal = controller.signal;
+                        if( onFinishImpl ) {
+                            args.onFinish = onFinishImpl;
+                        }
                         const streamResult = streamText(args);
                         var allText = "";
                         const asyncIterator = streamResult.textStream[Symbol.asyncIterator]();
@@ -424,6 +454,9 @@ module.exports = function (config, prompt, callback , eventcallback , extra ) {
                         const controller = new AbortController(); 
                         args.model = groq(config.model);
                         args.signal = controller.signal;
+                        if( onFinishImpl ) {
+                            args.onFinish = onFinishImpl;
+                        }
                         const streamResult = streamText(args);
                         var allText = "";
                         const asyncIterator = streamResult.textStream[Symbol.asyncIterator]();
@@ -480,6 +513,9 @@ module.exports = function (config, prompt, callback , eventcallback , extra ) {
                         const controller = new AbortController(); 
                         args.model = xai(config.model);
                         args.signal = controller.signal;
+                        if( onFinishImpl ) {
+                           args.onFinish = onFinishImpl;
+                        }
                         const streamResult = streamText(args);
                         var allText = "";
                         const asyncIterator = streamResult.textStream[Symbol.asyncIterator]();
@@ -536,6 +572,9 @@ module.exports = function (config, prompt, callback , eventcallback , extra ) {
                         const controller = new AbortController(); 
                         args.model = mistral(config.model);
                         args.signal = controller.signal;
+                        if( onFinishImpl ) {
+                           args.onFinish = onFinishImpl;
+                        }
                         const streamResult = streamText(args);
                         var allText = "";
                         const asyncIterator = streamResult.textStream[Symbol.asyncIterator]();

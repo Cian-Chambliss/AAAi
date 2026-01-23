@@ -184,6 +184,6 @@ module.exports = function (config, callback) {
     if (handlers[config.provider]) {
         return handlers[config.provider](config, callback, fallback);
     } else {
-        fallback(config.provider);
+        fallback(config.provider,callback);
     }
 };

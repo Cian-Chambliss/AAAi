@@ -3,6 +3,19 @@ module.exports = function (config, prompt, callback , extra ) {
         model:null,
         prompt: prompt,
     };
+    var processResponse = function(response) {} ;
+    if( config.trackCallback ) {    
+        processResponse = function( response ) {
+            var trackingData = { 
+                  config : config
+                , inputTokens : response.usage.inputTokens
+                , outputTokens : response.usage.outputTokens
+                , totalTokens : response.usage.totalTokens 
+            };
+            config.trackCallback( trackingData );
+        };
+    }
+
     if( Array.isArray(prompt) ) {
         if(  prompt.length ) {
             if( prompt[0].role ) {
@@ -66,6 +79,7 @@ module.exports = function (config, prompt, callback , extra ) {
                     const generateText = aiModule.generateText;
                     args.model = ollama(config.model);
                     generateText(args).then((result) => {
+                        processResponse(result);
                         callback(null, result.text,result);
                     }).catch((error) => {
                         callback(error.message, null);
@@ -107,6 +121,7 @@ module.exports = function (config, prompt, callback , extra ) {
                         const generateText = aiModule.generateText;
                         args.model = openai(config.model);
                         generateText(args).then((result) => {
+                            processResponse(result);
                             callback(null, result.text,result);
                         }).catch((error) => {
                             callback(error.message, null);
@@ -151,6 +166,7 @@ module.exports = function (config, prompt, callback , extra ) {
                         const generateText = aiModule.generateText;
                         args.model = openai(config.model);
                         generateText(args).then((result) => {
+                            processResponse(result);
                             callback(null, result.text,result);
                         }).catch((error) => {
                             callback(error.message, null);
@@ -185,6 +201,7 @@ module.exports = function (config, prompt, callback , extra ) {
                         const generateText = aiModule.generateText;
                         args.model = google(config.model);
                         generateText(args).then((result) => {
+                            processResponse(result);
                             callback(null, result.text,result);
                         }).catch((error) => {
                             callback(error.message, null);
@@ -225,6 +242,7 @@ module.exports = function (config, prompt, callback , extra ) {
                         const generateText = aiModule.generateText;
                         args.model = vertex(config.model);
                         generateText(args).then((result) => {
+                            processResponse(result);
                             callback(null, result.text,result);
                         }).catch((error) => {
                             callback(error.message, null);
@@ -260,6 +278,7 @@ module.exports = function (config, prompt, callback , extra ) {
                         const generateText = aiModule.generateText;
                         args.model = anthropic(config.model);
                         generateText(args).then((result) => {
+                            processResponse(result);
                             callback(null, result.text,result);
                         }).catch((error) => {
                             callback(error.message, null);
@@ -295,6 +314,7 @@ module.exports = function (config, prompt, callback , extra ) {
                         const generateText = aiModule.generateText;
                         args.model = groq(config.model);
                         generateText(args).then((result) => {
+                            processResponse(result);
                             callback(null, result.text,result);
                         }).catch((error) => {
                             callback(error.message, null);
@@ -330,6 +350,7 @@ module.exports = function (config, prompt, callback , extra ) {
                         const generateText = aiModule.generateText;
                         args.model = xai(config.model);
                         generateText(args).then((result) => {
+                            processResponse(result);
                             callback(null, result.text,result);
                         }).catch((error) => {
                             callback(error.message, null);
@@ -365,6 +386,7 @@ module.exports = function (config, prompt, callback , extra ) {
                         const generateText = aiModule.generateText;
                         args.model = mistral(config.model);
                         generateText(args).then((result) => {
+                            processResponse(result);
                             callback(null, result.text , result);
                         }).catch((error) => {
                             callback(error.message, null);
