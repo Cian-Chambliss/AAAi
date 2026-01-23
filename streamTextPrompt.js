@@ -1,20 +1,42 @@
 module.exports = function (config, prompt, callback , eventcallback , extra ) {
     var args = {
-        model:null,
+        model: null,
         prompt: prompt,
     };
-    var onFinishImpl = null;
-    if( config.trackCallback ) {    
-        onFinishImpl = function( response ) {
-            var trackingData = { 
-                  config : config
-                , inputTokens : response.usage.inputTokens
-                , outputTokens : response.usage.outputTokens
-                , totalTokens : response.usage.totalTokens 
-            };
-            config.trackCallback( trackingData );
-        };
-    }
+    //------------------------------------ Common stream logic
+    const streamAllText = function(config,args,callback,eventcallback) {
+        import('ai').then(async (aiModule) => {
+            const streamText = aiModule.streamText;
+            const controller = new AbortController(); 
+            args.signal = controller.signal;
+            if( config.trackCallback ) {
+                args.onFinish = function( response ) {
+                    var trackingData = {
+                          config : config
+                        , inputTokens : response.usage.inputTokens
+                        , outputTokens : response.usage.outputTokens
+                        , totalTokens : response.usage.totalTokens 
+                    };
+                    config.trackCallback( trackingData );
+                };
+            }
+            const streamResult = streamText(args);
+            var allText = "";
+            for await (const textPart of streamResult.textStream) {
+                allText += textPart;
+                if( !eventcallback(textPart,allText) ) {
+                    controller.abort();
+                    callback(' Stream aborted ',allText);
+                    streamResult.closeStream();
+                    return;
+                }
+            }
+            callback(null, await streamResult.text);
+        }).catch((error) => {
+            callback(error.message, null);
+        });
+    };
+
     if( Array.isArray(prompt) ) {
         if(  prompt.length ) {
             if( prompt[0].role ) {
@@ -73,42 +95,9 @@ module.exports = function (config, prompt, callback , eventcallback , extra ) {
                     url = config.baseurl.replace("localhost:","127.0.0.1:"); // nodeJs 18.15 does not map this - we can remove this when we update nodeJs
                 const ollama = createOllama({
                     baseURL: url
-                });
-                import('ai').then((aiModule) => {
-                    const streamText = aiModule.streamText;
-                    const controller = new AbortController(); 
-                    args.model = ollama(config.model);
-                    args.signal = controller.signal;
-                    if( onFinishImpl ) {
-                        args.onFinish = onFinishImpl;
-                    }
-                    const streamResult = streamText(args);
-                    var allText = "";
-                    const asyncIterator = streamResult.textStream[Symbol.asyncIterator]();
-                    function processNext() {
-                        asyncIterator.next().then(result => {
-                        if(result.value) {
-                            allText += result.value;
-                            if( !eventcallback(result.value,allText) ) {
-                                controller.abort();
-                                callback(' Stream aborted ',allText);
-                                streamResult.closeStream();
-                                return;
-                            }
-                        }
-                        if (!result.done) {
-                            processNext(); // Recursively call to process the next item
-                        } else {
-                            callback(null, allText, streamResult);
-                        }
-                        }).catch(error => {
-                            callback(error.message, allText, streamResult );
-                        });
-                    }
-                    processNext();
-                }).catch((error) => {
-                    callback(error.message, null);
-                });
+                }); 
+                args.model = ollama(config.model);
+                streamAllText(config,args,callback,eventcallback);
             }).catch((error) => {
                 callback(error.message, null);
             });
@@ -139,42 +128,8 @@ module.exports = function (config, prompt, callback , eventcallback , extra ) {
                 }
                 try {
                     const openai = createOpenAI(settings);
-                    import('ai').then((aiModule) => {
-                        const streamText = aiModule.streamText;
-                        const controller = new AbortController(); 
-
-                        args.model = openai(config.model);
-                        args.signal = controller.signal;
-                        if( onFinishImpl ) {
-                             args.onFinish = onFinishImpl;
-                        }
-                        const streamResult = streamText(args);
-                        var allText = "";
-                        const asyncIterator = streamResult.textStream[Symbol.asyncIterator]();
-                        function processNext() {
-                            asyncIterator.next().then(result => {
-                            if(result.value) {
-                                allText += result.value;
-                                if( !eventcallback(result.value,allText) ) {
-                                    controller.abort();
-                                    callback(' Stream aborted ',allText);
-                                    streamResult.closeStream();
-                                    return;
-                                }
-                            }
-                            if (!result.done) {
-                                processNext(); // Recursively call to process the next item
-                            } else {
-                                callback(null, allText);
-                            }
-                            }).catch(error => {
-                                callback(error.message, allText);
-                            });
-                        }
-                        processNext();
-                    }).catch((error) => {
-                        callback(error.message, null);
-                    });
+                    args.model = openai(config.model);
+                    streamAllText(config,args,callback,eventcallback);
                 } catch (error) {
                     callback(error.message, null);
                 }
@@ -208,41 +163,8 @@ module.exports = function (config, prompt, callback , eventcallback , extra ) {
                 }
                 try {
                     const openai = createOpenAI(settings);
-                    import('ai').then((aiModule) => {
-                        const streamText = aiModule.streamText;
-                        const controller = new AbortController(); 
-                        args.model = openai(config.model);
-                        args.signal = controller.signal;
-                        if( onFinishImpl ) {
-                            args.onFinish = onFinishImpl;
-                        }
-                        const streamResult = streamText(args);
-                        var allText = "";
-                        const asyncIterator = streamResult.textStream[Symbol.asyncIterator]();
-                        function processNext() {
-                            asyncIterator.next().then(result => {
-                            if(result.value) {
-                                allText += result.value;
-                                if( !eventcallback(result.value,allText) ) {
-                                    controller.abort();
-                                    callback(' Stream aborted ',allText);
-                                    streamResult.closeStream();
-                                    return;
-                                }
-                            }
-                            if (!result.done) {
-                                processNext(); // Recursively call to process the next item
-                            } else {
-                                callback(null, allText);
-                            }
-                            }).catch(error => {
-                                callback(error.message, allText);
-                            });
-                        }
-                        processNext();
-                    }).catch((error) => {
-                        callback(error.message, null);
-                    });
+                    args.model = openai(config.model);
+                    streamAllText(config,args,callback,eventcallback);
                 } catch (error) {
                     callback(error.message, null);
                 }
@@ -266,41 +188,8 @@ module.exports = function (config, prompt, callback , eventcallback , extra ) {
                 }
                 try {
                     const google = createGoogleGenerativeAI(settings);
-                    import('ai').then((aiModule) => {
-                        const streamText = aiModule.streamText;
-                        const controller = new AbortController(); 
-                        args.model = google(config.model);
-                        args.signal = controller.signal;
-                        if( onFinishImpl ) {
-                            args.onFinish = onFinishImpl;
-                        }
-                        const streamResult = streamText(args);
-                        var allText = "";
-                        const asyncIterator = streamResult.textStream[Symbol.asyncIterator]();
-                        function processNext() {
-                            asyncIterator.next().then(result => {
-                            if(result.value) {
-                                allText += result.value;
-                                if( !eventcallback(result.value,allText) ) {
-                                    controller.abort();
-                                    callback(' Stream aborted ',allText);
-                                    streamResult.closeStream();
-                                    return;
-                                }
-                            }
-                            if (!result.done) {
-                                processNext(); // Recursively call to process the next item
-                            } else {
-                                callback(null, allText);
-                            }
-                            }).catch(error => {
-                                callback(error.message, allText);
-                            });
-                        }
-                        processNext();
-                    }).catch((error) => {
-                        callback(error.message, null);
-                    });
+                    args.model = google(config.model);
+                    streamAllText(config,args,callback,eventcallback);
                 } catch (error) {
                     callback(error.message, null);
                 }
@@ -330,41 +219,8 @@ module.exports = function (config, prompt, callback , eventcallback , extra ) {
                 }
                 try {
                     const vertex = createVertex(settings);
-                    import('ai').then((aiModule) => {
-                        const streamText = aiModule.streamText;
-                        const controller = new AbortController(); 
-                        args.model = vertex(config.model);
-                        args.signal = controller.signal;
-                        if( onFinishImpl ) {
-                            args.onFinish = onFinishImpl;
-                        }
-                        const streamResult = streamText(args);
-                        var allText = "";
-                        const asyncIterator = streamResult.textStream[Symbol.asyncIterator]();
-                        function processNext() {
-                            asyncIterator.next().then(result => {
-                            if(result.value) {
-                                allText += result.value;
-                                if( !eventcallback(result.value,allText) ) {
-                                    controller.abort();
-                                    callback(' Stream aborted ',allText);
-                                    streamResult.closeStream();
-                                    return;
-                                }
-                            }
-                            if (!result.done) {
-                                processNext(); // Recursively call to process the next item
-                            } else {
-                                callback(null, allText);
-                            }
-                            }).catch(error => {
-                                callback(error.message, allText);
-                            });
-                        }
-                        processNext();
-                    }).catch((error) => {
-                        callback(error.message, null);
-                    });
+                    args.model = vertex(config.model);
+                    streamAllText(config,args,callback,eventcallback);                    
                 } catch (error) {
                     callback(error.message, null);
                 }
@@ -389,42 +245,8 @@ module.exports = function (config, prompt, callback , eventcallback , extra ) {
                 }
                 try {
                     const anthropic = createAnthropic(settings);
-
-                    import('ai').then((aiModule) => {
-                        const streamText = aiModule.streamText;
-                        const controller = new AbortController(); 
-                        args.model = anthropic(config.model);
-                        args.signal = controller.signal;
-                        if( onFinishImpl ) {
-                            args.onFinish = onFinishImpl;
-                        }
-                        const streamResult = streamText(args);
-                        var allText = "";
-                        const asyncIterator = streamResult.textStream[Symbol.asyncIterator]();
-                        function processNext() {
-                            asyncIterator.next().then(result => {
-                            if(result.value) {
-                                allText += result.value;
-                                if( !eventcallback(result.value,allText) ) {
-                                    controller.abort();
-                                    callback(' Stream aborted ',allText);
-                                    streamResult.closeStream();
-                                    return;
-                                }
-                            }
-                            if (!result.done) {
-                                processNext(); // Recursively call to process the next item
-                            } else {
-                                callback(null, allText);
-                            }
-                            }).catch(error => {
-                                callback(error.message, allText);
-                            });
-                        }
-                        processNext();
-                    }).catch((error) => {
-                        callback(error.message, null);
-                    });
+                    args.model = anthropic(config.model);
+                    streamAllText(config,args,callback,eventcallback);
                 } catch (error) {
                     callback(error.message, null);
                 }
@@ -449,41 +271,8 @@ module.exports = function (config, prompt, callback , eventcallback , extra ) {
                 }
                 try {
                     const groq = createGroq(settings);
-                    import('ai').then((aiModule) => {
-                        const streamText = aiModule.streamText;
-                        const controller = new AbortController(); 
-                        args.model = groq(config.model);
-                        args.signal = controller.signal;
-                        if( onFinishImpl ) {
-                            args.onFinish = onFinishImpl;
-                        }
-                        const streamResult = streamText(args);
-                        var allText = "";
-                        const asyncIterator = streamResult.textStream[Symbol.asyncIterator]();
-                        function processNext() {
-                            asyncIterator.next().then(result => {
-                            if(result.value) {
-                                allText += result.value;
-                                if( !eventcallback(result.value,allText) ) {
-                                    controller.abort();
-                                    callback(' Stream aborted ',allText);
-                                    streamResult.closeStream();
-                                    return;
-                                }
-                            }
-                            if (!result.done) {
-                                processNext(); // Recursively call to process the next item
-                            } else {
-                                callback(null, allText);
-                            }
-                            }).catch(error => {
-                                callback(error.message, allText);
-                            });
-                        }
-                        processNext();
-                    }).catch((error) => {
-                        callback(error.message, null);
-                    });
+                    args.model = groq(config.model);
+                    streamAllText(config,args,callback,eventcallback);
                 } catch (error) {
                     callback(error.message, null);
                 }
@@ -508,41 +297,8 @@ module.exports = function (config, prompt, callback , eventcallback , extra ) {
                 }
                 try {
                     const xai = createXai(settings);
-                    import('ai').then((aiModule) => {
-                        const streamText = aiModule.streamText;
-                        const controller = new AbortController(); 
-                        args.model = xai(config.model);
-                        args.signal = controller.signal;
-                        if( onFinishImpl ) {
-                           args.onFinish = onFinishImpl;
-                        }
-                        const streamResult = streamText(args);
-                        var allText = "";
-                        const asyncIterator = streamResult.textStream[Symbol.asyncIterator]();
-                        function processNext() {
-                            asyncIterator.next().then(result => {
-                            if(result.value) {
-                                allText += result.value;
-                                if( !eventcallback(result.value,allText) ) {
-                                    controller.abort();
-                                    callback(' Stream aborted ',allText);
-                                    streamResult.closeStream();
-                                    return;
-                                }
-                            }
-                            if (!result.done) {
-                                processNext(); // Recursively call to process the next item
-                            } else {
-                                callback(null, allText);
-                            }
-                            }).catch(error => {
-                                callback(error.message, allText);
-                            });
-                        }
-                        processNext();
-                    }).catch((error) => {
-                        callback(error.message, null);
-                    });
+                    args.model = xai(config.model);
+                    streamAllText(config,args,callback,eventcallback);
                 } catch (error) {
                     callback(error.message, null);
                 }
@@ -567,41 +323,9 @@ module.exports = function (config, prompt, callback , eventcallback , extra ) {
                 }
                 try {
                     const mistral = createMistral(settings);
-                    import('ai').then((aiModule) => {
-                        const streamText = aiModule.streamText;
-                        const controller = new AbortController(); 
-                        args.model = mistral(config.model);
-                        args.signal = controller.signal;
-                        if( onFinishImpl ) {
-                           args.onFinish = onFinishImpl;
-                        }
-                        const streamResult = streamText(args);
-                        var allText = "";
-                        const asyncIterator = streamResult.textStream[Symbol.asyncIterator]();
-                        function processNext() {
-                            asyncIterator.next().then(result => {
-                            if(result.value) {
-                                allText += result.value;
-                                if( !eventcallback(result.value,allText) ) {
-                                    controller.abort();
-                                    callback(' Stream aborted ',allText);
-                                    streamResult.closeStream();
-                                    return;
-                                }
-                            }
-                            if (!result.done) {
-                                processNext(); // Recursively call to process the next item
-                            } else {
-                                callback(null, allText);
-                            }
-                            }).catch(error => {
-                                callback(error.message, allText);
-                            });
-                        }
-                        processNext();
-                    }).catch((error) => {
-                        callback(error.message, null);
-                    });
+                    args.model = mistral(config.model);
+                    streamAllText(config,args,callback,eventcallback);
+                    
                 } catch (error) {
                     callback(error.message, null);
                 }
