@@ -4,19 +4,29 @@ module.exports = function (config, prompt, callback , eventcallback , extra ) {
         prompt: prompt,
     };
     //------------------------------------ Common stream logic
-    const streamAllText = function(config,args,callback,eventcallback) {
+    const streamAllText = function(config,prompt,args,callback,eventcallback) {
         import('ai').then(async (aiModule) => {
             const streamText = aiModule.streamText;
             const controller = new AbortController(); 
             args.signal = controller.signal;
             if( config.trackCallback ) {
-                args.onFinish = function( response ) {
+                args.onFinish = async function( response ) {
                     var trackingData = {
                           config : config
+                        , psuedo : false  
                         , inputTokens : response.usage.inputTokens
                         , outputTokens : response.usage.outputTokens
                         , totalTokens : response.usage.totalTokens 
                     };
+                    if( !response.usage.inputTokens
+                     && !response.usage.outputTokens
+                     && !response.usage.totalTokens
+                      ) {
+                        trackingData.psuedo = true;
+                        trackingData.inputTokens = Math.ceil( (prompt.split(" ").join("").split("\r\n").join()).length / 4 );
+                        trackingData.outputTokens = Math.ceil( ((await response.text).split(" ").join("").split("\r\n").join()).length / 4 );
+                        trackingData.totalTokens = trackingData.inputTokens + trackingData.outputTokens;
+                    }
                     config.trackCallback( trackingData );
                 };
             }
@@ -97,7 +107,7 @@ module.exports = function (config, prompt, callback , eventcallback , extra ) {
                     baseURL: url
                 }); 
                 args.model = ollama(config.model);
-                streamAllText(config,args,callback,eventcallback);
+                streamAllText(config,prompt,args,callback,eventcallback);
             }).catch((error) => {
                 callback(error.message, null);
             });
@@ -129,7 +139,7 @@ module.exports = function (config, prompt, callback , eventcallback , extra ) {
                 try {
                     const openai = createOpenAI(settings);
                     args.model = openai(config.model);
-                    streamAllText(config,args,callback,eventcallback);
+                    streamAllText(config,prompt,args,callback,eventcallback);
                 } catch (error) {
                     callback(error.message, null);
                 }
@@ -164,7 +174,7 @@ module.exports = function (config, prompt, callback , eventcallback , extra ) {
                 try {
                     const openai = createOpenAI(settings);
                     args.model = openai(config.model);
-                    streamAllText(config,args,callback,eventcallback);
+                    streamAllText(config,prompt,args,callback,eventcallback);
                 } catch (error) {
                     callback(error.message, null);
                 }
@@ -189,7 +199,7 @@ module.exports = function (config, prompt, callback , eventcallback , extra ) {
                 try {
                     const google = createGoogleGenerativeAI(settings);
                     args.model = google(config.model);
-                    streamAllText(config,args,callback,eventcallback);
+                    streamAllText(config,prompt,args,callback,eventcallback);
                 } catch (error) {
                     callback(error.message, null);
                 }
@@ -220,7 +230,7 @@ module.exports = function (config, prompt, callback , eventcallback , extra ) {
                 try {
                     const vertex = createVertex(settings);
                     args.model = vertex(config.model);
-                    streamAllText(config,args,callback,eventcallback);                    
+                    streamAllText(config,prompt,args,callback,eventcallback);                    
                 } catch (error) {
                     callback(error.message, null);
                 }
@@ -246,7 +256,7 @@ module.exports = function (config, prompt, callback , eventcallback , extra ) {
                 try {
                     const anthropic = createAnthropic(settings);
                     args.model = anthropic(config.model);
-                    streamAllText(config,args,callback,eventcallback);
+                    streamAllText(config,prompt,args,callback,eventcallback);
                 } catch (error) {
                     callback(error.message, null);
                 }
@@ -272,7 +282,7 @@ module.exports = function (config, prompt, callback , eventcallback , extra ) {
                 try {
                     const groq = createGroq(settings);
                     args.model = groq(config.model);
-                    streamAllText(config,args,callback,eventcallback);
+                    streamAllText(config,prompt,args,callback,eventcallback);
                 } catch (error) {
                     callback(error.message, null);
                 }
@@ -298,7 +308,7 @@ module.exports = function (config, prompt, callback , eventcallback , extra ) {
                 try {
                     const xai = createXai(settings);
                     args.model = xai(config.model);
-                    streamAllText(config,args,callback,eventcallback);
+                    streamAllText(config,prompt,args,callback,eventcallback);
                 } catch (error) {
                     callback(error.message, null);
                 }
@@ -324,7 +334,7 @@ module.exports = function (config, prompt, callback , eventcallback , extra ) {
                 try {
                     const mistral = createMistral(settings);
                     args.model = mistral(config.model);
-                    streamAllText(config,args,callback,eventcallback);
+                    streamAllText(config,prompt,args,callback,eventcallback);
                     
                 } catch (error) {
                     callback(error.message, null);
