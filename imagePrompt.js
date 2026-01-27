@@ -4,11 +4,15 @@ module.exports = function (config, prompt, callback , extra ) {
     var processResponse = function(response) {} ;
     if( config.trackCallback ) {    
         processResponse = function( response ) {
+            var usage = response.usage;
+            if( !usage ) {
+                usage = {inputTokens:0,outputTokens:0,totalTokens:0};
+            }
             var trackingData = { 
                   config : config
-                , inputTokens : response.usage.inputTokens
-                , outputTokens : response.usage.outputTokens
-                , totalTokens : response.usage.totalTokens 
+                , inputTokens : usage.inputTokens
+                , outputTokens : usage.outputTokens
+                , totalTokens : usage.totalTokens 
                 , cachedInputTokens : 0
                 , reasoningTokens : 0
             };

@@ -11,12 +11,16 @@ module.exports = function (config, prompt, callback , eventcallback , extra ) {
             args.signal = controller.signal;
             if( config.trackCallback ) {
                 args.onFinish = async function( response ) {
+                    var usage = response.usage;
+                    if( !usage ) {
+                        usage = {inputTokens:0,outputTokens:0,totalTokens:0};
+                    }
                     var trackingData = {
                           config : config
                         , psuedo : false  
-                        , inputTokens : response.usage.inputTokens
-                        , outputTokens : response.usage.outputTokens
-                        , totalTokens : response.usage.totalTokens 
+                        , inputTokens : usage.inputTokens
+                        , outputTokens : usage.outputTokens
+                        , totalTokens : usage.totalTokens 
                         , cachedInputTokens : 0
                         , reasoningTokens : 0
                     };
