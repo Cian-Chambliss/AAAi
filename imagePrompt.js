@@ -103,8 +103,8 @@ module.exports = function (config, prompt, callback , extra ) {
                     const generateImage = aiModule.experimental_generateImage;
                     args.model = ollama.image(config.model);
                     generateImage(args).then((result) => {
-                        processResponse(result);
                         callback(null, result);
+                        processResponse(result);
                     }).catch((error) => {
                         callback(error.message, null);
                     });
@@ -145,8 +145,8 @@ module.exports = function (config, prompt, callback , extra ) {
                         const generateImage = aiModule.experimental_generateImage;
                         args.model = openai.image(config.model);
                         generateImage(args).then((result) => {
-                            processResponse(result);
                             callback(null, result);
+                            processResponse(result);
                         }).catch((error) => {
                             callback(error.message, null);
                         });
@@ -190,8 +190,8 @@ module.exports = function (config, prompt, callback , extra ) {
                         const generateImage = aiModule.experimental_generateImage;
                         args.model = openai.image(config.model);
                         generateImage(args).then((result) => {
-                            processResponse(result);
                             callback(null, result);
+                            processResponse(result);
                         }).catch((error) => {
                             callback(error.message, null);
                         });
@@ -225,8 +225,8 @@ module.exports = function (config, prompt, callback , extra ) {
                         const generateImage = aiModule.experimental_generateImage;
                         args.model = google.image(config.model);
                         generateImage(args).then((result) => {
-                            processResponse(result);
                             callback(null, result);
+                            processResponse(result);
                         }).catch((error) => {
                             callback(error.message, null);
                         });
@@ -266,8 +266,8 @@ module.exports = function (config, prompt, callback , extra ) {
                         const generateImage = aiModule.experimental_generateImage;
                         args.model = vertex(config.model);
                         generateImage(args).then((result) => {
-                            processResponse(result);
                             callback(null, result);
+                            processResponse(result);
                         }).catch((error) => {
                             callback(error.message, null);
                         });
@@ -302,8 +302,8 @@ module.exports = function (config, prompt, callback , extra ) {
                         const generateImage = aiModule.experimental_generateImage;
                         args.model = anthropic(config.model);
                         generateImage(args).then((result) => {
-                            processResponse(result);
                             callback(null, result);
+                            processResponse(result);
                         }).catch((error) => {
                             callback(error.message, null);
                         });
@@ -338,8 +338,8 @@ module.exports = function (config, prompt, callback , extra ) {
                         const generateImage = aiModule.experimental_generateImage;
                         args.model = groq(config.model);
                         generateImages(args).then((result) => {
-                            processResponse(result);
                             callback(null, result);
+                            processResponse(result);
                         }).catch((error) => {
                             callback(error.message, null);
                         });
@@ -374,8 +374,8 @@ module.exports = function (config, prompt, callback , extra ) {
                         const generateImage = aiModule.experimental_generateImage;
                         args.model = xai(config.model);
                         generateImage(args).then((result) => {
-                            processResponse(result);
                             callback(null, result);
+                            processResponse(result);
                         }).catch((error) => {
                             callback(error.message, null);
                         });
@@ -410,8 +410,8 @@ module.exports = function (config, prompt, callback , extra ) {
                         const generateImage = aiModule.experimental_generateImage;
                         args.model = mistral(config.model);
                         generateImage(args).then((result) => {
-                            processResponse(result);
                             callback(null, result);
+                            processResponse(result);
                         }).catch((error) => {
                             callback(error.message, null);
                         });
@@ -446,8 +446,8 @@ module.exports = function (config, prompt, callback , extra ) {
                         const generateImage = aiModule.experimental_generateImage;
                         args.model = runware.image(config.model);
                         generateImage(args).then((result) => {
-                            processResponse(result);
                             callback(null, result);
+                            processResponse(result);
                         }).catch((error) => {
                             callback(error.message, null);
                         });

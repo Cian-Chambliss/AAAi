@@ -49,8 +49,8 @@ module.exports = function (config, audio, callback , extra ) {
                     const transcribe = aiModule.experimental_transcribe ;
                     args.model = ollama.transcription(config.model);
                     transcribe(args).then((result) => {
-                        processResponse(result);
                         callback(null, result.text);
+                        processResponse(result);
                     }).catch((error) => {
                         callback(error.message, null);
                     });
@@ -91,8 +91,8 @@ module.exports = function (config, audio, callback , extra ) {
                         const transcribe = aiModule.experimental_transcribe;
                         args.model = openai.transcription(config.model);
                         transcribe(args).then((result) => {
-                            processResponse(result);
                             callback(null, result.text);
+                            processResponse(result);
                         }).catch((error) => {
                             callback(error.message, null);
                         });
@@ -136,8 +136,8 @@ module.exports = function (config, audio, callback , extra ) {
                         const transcribe = aiModule.experimental_transcribe;
                         args.model = openai.transcription(config.model);
                         transcribe(args).then((result) => {
-                            processResponse(result);
                             callback(null, result.text);
+                            processResponse(result);
                         }).catch((error) => {
                             callback(error.message, null);
                         });
@@ -171,8 +171,8 @@ module.exports = function (config, audio, callback , extra ) {
                         const transcribe = aiModule.experimental_transcribe ;
                         args.model = google.transcription(config.model);
                         transcribe(args).then((result) => {
-                            processResponse(result);
                             callback(null, result.text);
+                            processResponse(result);
                         }).catch((error) => {
                             callback(error.message, null);
                         });
@@ -212,8 +212,8 @@ module.exports = function (config, audio, callback , extra ) {
                         const transcribe = aiModule.experimental_transcribe ;
                         args.model = vertex.transcription(config.model);
                         transcribe(args).then((result) => {
-                            processResponse(result);
                             callback(null, result.text);
+                            processResponse(result);
                         }).catch((error) => {
                             callback(error.message, null);
                         });
@@ -248,8 +248,8 @@ module.exports = function (config, audio, callback , extra ) {
                         const transcribe = aiModule.experimental_transcribe ;
                         args.model = anthropic.transcription(config.model);
                         transcribe(args).then((result) => {
-                            processResponse(result);
                             callback(null, result.text);
+                            processResponse(result);
                         }).catch((error) => {
                             callback(error.message, null);
                         });
@@ -284,8 +284,8 @@ module.exports = function (config, audio, callback , extra ) {
                         const transcribe = aiModule.experimental_transcribe ;
                         args.model = groq.transcription(config.model);
                         transcribe(args).then((result) => {
-                            processResponse(result);
                             callback(null, result.text);
+                            processResponse(result);
                         }).catch((error) => {
                             callback(error.message, null);
                         });
@@ -320,8 +320,8 @@ module.exports = function (config, audio, callback , extra ) {
                         const transcribe = aiModule.experimental_transcribe ;
                         args.model = xai.transcription(config.model);
                         transcribe(args).then((result) => {
-                            processResponse(result);
                             callback(null, result.text);
+                            processResponse(result);
                         }).catch((error) => {
                             callback(error.message, null);
                         });
@@ -356,8 +356,8 @@ module.exports = function (config, audio, callback , extra ) {
                         const transcribe = aiModule.experimental_transcribe ;
                         args.model = mistral.transcription(config.model);
                         transcribe(args).then((result) => {
-                            processResponse(result);
                             callback(null, result.text);
+                            processResponse(result);
                         }).catch((error) => {
                             callback(error.message, null);
                         });

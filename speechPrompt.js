@@ -92,8 +92,8 @@ module.exports = function (config, prompt, callback , extra ) {
                     const generateSpeech = aiModule.experimental_generateSpeech ;
                     args.model = ollama.speech(config.model);
                     generateSpeech(args).then((result) => {
-                        processResponse(result);
                         callback(null, result);
+                        processResponse(result);
                     }).catch((error) => {
                         callback(error.message, null);
                     });
@@ -134,8 +134,8 @@ module.exports = function (config, prompt, callback , extra ) {
                         const generateSpeech = aiModule.experimental_generateSpeech ;
                         args.model = openai.speech(config.model);
                         generateSpeech(args).then((result) => {
-                            processResponse(result);
                             callback(null, result);
+                            processResponse(result);
                         }).catch((error) => {
                             callback(error.message, null);
                         });
@@ -180,8 +180,8 @@ module.exports = function (config, prompt, callback , extra ) {
                         const generateSpeech = aiModule.experimental_generateSpeech ;
                         args.model = openai.speech(config.model);
                         generateSpeech(args).then((result) => {
-                            processResponse(result);
                             callback(null, result);
+                            processResponse(result);
                         }).catch((error) => {
                             callback(error.message, null);
                         });
@@ -214,8 +214,8 @@ module.exports = function (config, prompt, callback , extra ) {
                         const generateSpeech = aiModule.experimental_generateSpeech ;
                         args.model = google.speech(config.model);
                         generateSpeech(args).then((result) => {
-                            processResponse(result);
                             callback(null, result);
+                            processResponse(result);
                         }).catch((error) => {
                             callback(error.message, null);
                         });
@@ -255,8 +255,8 @@ module.exports = function (config, prompt, callback , extra ) {
                         const generateSpeech = aiModule.experimental_generateSpeech ;
                         args.model = vertex.speech(config.model);
                         generateSpeech(args).then((result) => {
-                            processResponse(result);
                             callback(null, result);
+                            processResponse(result);
                         }).catch((error) => {
                             callback(error.message, null);
                         });
@@ -291,8 +291,8 @@ module.exports = function (config, prompt, callback , extra ) {
                         const generateSpeech = aiModule.experimental_generateSpeech ;
                         args.model = anthropic.speech(config.model);
                         generateSpeech(args).then((result) => {
-                            processResponse(result);
                             callback(null, result);
+                            processResponse(result);
                         }).catch((error) => {
                             callback(error.message, null);
                         });
@@ -327,8 +327,8 @@ module.exports = function (config, prompt, callback , extra ) {
                         const generateSpeech = aiModule.experimental_generateSpeech ;
                         args.model = groq.speech(config.model);
                         generateSpeechs(args).then((result) => {
-                            processResponse(result);
                             callback(null, result);
+                            processResponse(result);
                         }).catch((error) => {
                             callback(error.message, null);
                         });
@@ -363,8 +363,8 @@ module.exports = function (config, prompt, callback , extra ) {
                         const generateSpeech = aiModule.experimental_generateSpeech ;
                         args.model = xai.speech(config.model);
                         generateSpeech(args).then((result) => {
-                            processResponse(result);
                             callback(null, result);
+                            processResponse(result);
                         }).catch((error) => {
                             callback(error.message, null);
                         });
@@ -399,8 +399,8 @@ module.exports = function (config, prompt, callback , extra ) {
                         const generateSpeech = aiModule.experimental_generateSpeech ;
                         args.model = mistral(config.model);
                         generateSpeech(args).then((result) => {
-                            processResponse(result);
                             callback(null, result);
+                            processResponse(result);
                         }).catch((error) => {
                             callback(error.message, null);
                         });
