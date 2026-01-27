@@ -11,7 +11,18 @@ module.exports = function (config, audio, callback , extra ) {
                 , inputTokens : response.usage.inputTokens
                 , outputTokens : response.usage.outputTokens
                 , totalTokens : response.usage.totalTokens 
+                , cachedInputTokens : 0
+                , reasoningTokens : 0
             };
+            // Other types of tokens to track...
+            if( response.totalUsage ) {
+                if( response.totalUsage.cachedInputTokens ) {
+                    trackingData.cachedInputTokens = response.totalUsage.cachedInputTokens;
+                }
+                if( response.totalUsage.reasoningTokens ) {
+                    trackingData.reasoningTokens = response.totalUsage.reasoningTokens;
+                }
+            }
             config.trackCallback( trackingData );
         };
     }
