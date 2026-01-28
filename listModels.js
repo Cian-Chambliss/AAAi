@@ -82,7 +82,6 @@ module.exports = function (config, callback) {
                 });
                 // Process the complete response
                 res.on('end', () => {
-                    console.log(data);
                     try {
                         const obj = JSON.parse(data);
                         const listed = [];
@@ -96,7 +95,6 @@ module.exports = function (config, callback) {
                         else
                             fallback("openai",callback);
                     }  catch (error) {
-                        console.log(error);
                         fallback("openai",callback);
                     }
                 });
@@ -109,7 +107,7 @@ module.exports = function (config, callback) {
         "runware" : function (config, callback,fallback) {
             var url = config.baseurl;
             if (!url) {
-                url = "https://api.runware.ai/v1/models";
+                url = "https://api.runware.ai/v1";
             }
             var httpx = null;
             const urlP = new URL(url);
@@ -122,41 +120,48 @@ module.exports = function (config, callback) {
                 hostname : urlP.hostname,
                 port : urlP.port,
                 path : urlP.pathname,
-                method : "GET",
+                method : "POST",
                 headers: {
                     'Content-Type': 'application/json',
                      'Authorization': `Bearer ${config.apikey}`
-                },
+                }                
             };
-            httpx.get(options, (res) => {
+            const req = httpx.request(options, (res) => {
                 let data = '';
-                // Collect data chunks
+                // Collect data chunks                
                 res.on('data', (chunk) => {
                     data += chunk;
                 });
                 // Process the complete response
                 res.on('end', () => {
-                    console.log(data);
                     try {
                         const obj = JSON.parse(data);
                         const listed = [];
-                        const models = obj.data;
+                        var models = obj.data;
+                        if( models[0].results ) {
+                            models = models[0].results;
+                        }
                         for(var i = 0  ; i < models.length ; ++i ) {
-                            if(models[i].id)
-                                listed.push(models[i].id);
+                            if(models[i].air)
+                                listed.push(models[i].air);
                         }
                         if( listed.length )
-                            callback(null,listed);
+                            callback(null,listed,models);
                         else
                             fallback("runware",callback);
                     }  catch (error) {
-                        console.log(error);
                         fallback("runware",callback);
                     }
                 });
             }).on('error', (err) => {
                 fallback("runware",callback);
             });
+            //{ "taskType": "authentication", "apiKey": config.apikey }, 
+            const crypto = require('crypto');
+            const guid = crypto.randomUUID();
+            req.write(JSON.stringify([{  "taskType": "modelSearch",
+                "taskUUID" : guid, "limit": 100 }]));
+            req.end();
         }
     };
     if (!config) {
