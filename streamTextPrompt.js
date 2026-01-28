@@ -5,61 +5,65 @@ module.exports = function (config, prompt, callback , eventcallback , extra ) {
     };
     //------------------------------------ Common stream logic
     const streamAllText = function(config,prompt,args,callback,eventcallback) {
-        import('ai').then(async (aiModule) => {
-            const streamText = aiModule.streamText;
-            const controller = new AbortController(); 
-            args.signal = controller.signal;
-            if( config.trackCallback ) {
-                args.onFinish = async function( response ) {
-                    var usage = response.usage;
-                    if( !usage ) {
-                        usage = {inputTokens:0,outputTokens:0,totalTokens:0};
-                    }
-                    var trackingData = {
-                          config : config
-                        , psuedo : false  
-                        , inputTokens : usage.inputTokens
-                        , outputTokens : usage.outputTokens
-                        , totalTokens : usage.totalTokens 
-                        , cachedInputTokens : 0
-                        , reasoningTokens : 0
+        if( !args.model ) {            
+            callback("Model '"+config.model+"' not found.", null);
+        } else {
+            import('ai').then(async (aiModule) => {
+                const streamText = aiModule.streamText;
+                const controller = new AbortController(); 
+                args.signal = controller.signal;
+                if( config.trackCallback ) {
+                    args.onFinish = async function( response ) {
+                        var usage = response.usage;
+                        if( !usage ) {
+                            usage = {inputTokens:0,outputTokens:0,totalTokens:0};
+                        }
+                        var trackingData = {
+                            config : config
+                            , psuedo : false  
+                            , inputTokens : usage.inputTokens
+                            , outputTokens : usage.outputTokens
+                            , totalTokens : usage.totalTokens 
+                            , cachedInputTokens : 0
+                            , reasoningTokens : 0
+                        };
+                        // Other types of tokens to track...
+                        if( response.totalUsage ) {
+                            if( response.totalUsage.cachedInputTokens ) {
+                            trackingData.cachedInputTokens = response.totalUsage.cachedInputTokens;
+                            }
+                            if( response.totalUsage.reasoningTokens ) {
+                                trackingData.reasoningTokens = response.totalUsage.reasoningTokens;
+                            }
+                        }
+                        if( !response.usage.inputTokens
+                        && !response.usage.outputTokens
+                        && !response.usage.totalTokens
+                        ) {
+                            trackingData.psuedo = true;
+                            trackingData.inputTokens = Math.ceil( (prompt.split(" ").join("").split("\r\n").join()).length / 4 );
+                            trackingData.outputTokens = Math.ceil( ((await response.text).split(" ").join("").split("\r\n").join()).length / 4 );
+                            trackingData.totalTokens = trackingData.inputTokens + trackingData.outputTokens;
+                        }
+                        config.trackCallback( trackingData );
                     };
-                    // Other types of tokens to track...
-                    if( response.totalUsage ) {
-                        if( response.totalUsage.cachedInputTokens ) {
-                           trackingData.cachedInputTokens = response.totalUsage.cachedInputTokens;
-                        }
-                        if( response.totalUsage.reasoningTokens ) {
-                            trackingData.reasoningTokens = response.totalUsage.reasoningTokens;
-                        }
-                    }
-                    if( !response.usage.inputTokens
-                     && !response.usage.outputTokens
-                     && !response.usage.totalTokens
-                      ) {
-                        trackingData.psuedo = true;
-                        trackingData.inputTokens = Math.ceil( (prompt.split(" ").join("").split("\r\n").join()).length / 4 );
-                        trackingData.outputTokens = Math.ceil( ((await response.text).split(" ").join("").split("\r\n").join()).length / 4 );
-                        trackingData.totalTokens = trackingData.inputTokens + trackingData.outputTokens;
-                    }
-                    config.trackCallback( trackingData );
-                };
-            }
-            const streamResult = streamText(args);
-            var allText = "";
-            for await (const textPart of streamResult.textStream) {
-                allText += textPart;
-                if( !eventcallback(textPart,allText) ) {
-                    controller.abort();
-                    callback(' Stream aborted ',allText);
-                    streamResult.closeStream();
-                    return;
                 }
-            }
-            callback(null, await streamResult.text);
-        }).catch((error) => {
-            callback(error.message, null);
-        });
+                const streamResult = streamText(args);
+                var allText = "";
+                for await (const textPart of streamResult.textStream) {
+                    allText += textPart;
+                    if( !eventcallback(textPart,allText) ) {
+                        controller.abort();
+                        callback(' Stream aborted ',allText);
+                        streamResult.closeStream();
+                        return;
+                    }
+                }
+                callback(null, await streamResult.text);
+            }).catch((error) => {
+                callback(error.message, null);
+            });
+        }
     };
 
     if( Array.isArray(prompt) ) {

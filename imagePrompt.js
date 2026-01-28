@@ -91,6 +91,13 @@ module.exports = function (config, prompt, callback , extra ) {
         //abortSignal - look at implementing
         //Tool Calling - loop at implementing - need some examples 
     }
+    const modelCheck = function(args,config,callback) {
+        if( !args.model ) {            
+            callback("Model '"+config.model+"' not found.", null);
+            return false;
+        }
+        return true;
+    };
     const handlers = {
         //-------------------------------------------------------------------------------------------
         // OLLAMA AI text prompt driver
@@ -106,12 +113,14 @@ module.exports = function (config, prompt, callback , extra ) {
                 import('ai').then((aiModule) => {
                     const generateImage = aiModule.experimental_generateImage;
                     args.model = ollama.image(config.model);
-                    generateImage(args).then((result) => {
-                        callback(null, result);
-                        processResponse(result);
-                    }).catch((error) => {
-                        callback(error.message, null);
-                    });
+                    if( modelCheck(args,config,callback) ) {
+                        generateImage(args).then((result) => {
+                            callback(null, result);
+                            processResponse(result);
+                        }).catch((error) => {
+                            callback(error.message, null);
+                        });
+                    }
                 }).catch((error) => {
                     callback(error.message, null);
                 });
@@ -148,12 +157,14 @@ module.exports = function (config, prompt, callback , extra ) {
                     import('ai').then((aiModule) => {
                         const generateImage = aiModule.experimental_generateImage;
                         args.model = openai.image(config.model);
-                        generateImage(args).then((result) => {
-                            callback(null, result);
-                            processResponse(result);
-                        }).catch((error) => {
-                            callback(error.message, null);
-                        });
+                        if( modelCheck(args,config,callback) ) {
+                           generateImage(args).then((result) => {
+                                callback(null, result);
+                                processResponse(result);
+                           }).catch((error) => {
+                                callback(error.message, null);
+                           });
+                        }
                     }).catch((error) => {
                         callback(error.message, null);
                     });
@@ -193,12 +204,14 @@ module.exports = function (config, prompt, callback , extra ) {
                     import('ai').then((aiModule) => {
                         const generateImage = aiModule.experimental_generateImage;
                         args.model = openai.image(config.model);
-                        generateImage(args).then((result) => {
-                            callback(null, result);
-                            processResponse(result);
-                        }).catch((error) => {
-                            callback(error.message, null);
-                        });
+                        if( modelCheck(args,config,callback) ) {
+                            generateImage(args).then((result) => {
+                                callback(null, result);
+                                processResponse(result);
+                            }).catch((error) => {
+                                callback(error.message, null);
+                            });
+                        }
                     }).catch((error) => {
                         callback(error.message, null);
                     });
@@ -228,12 +241,14 @@ module.exports = function (config, prompt, callback , extra ) {
                     import('ai').then((aiModule) => {
                         const generateImage = aiModule.experimental_generateImage;
                         args.model = google.image(config.model);
-                        generateImage(args).then((result) => {
-                            callback(null, result);
-                            processResponse(result);
-                        }).catch((error) => {
-                            callback(error.message, null);
-                        });
+                        if( modelCheck(args,config,callback) ) {
+                            generateImage(args).then((result) => {
+                                callback(null, result);
+                                processResponse(result);
+                            }).catch((error) => {
+                                callback(error.message, null);
+                            });
+                        }
                     }).catch((error) => {
                         callback(error.message, null);
                     });
@@ -269,12 +284,14 @@ module.exports = function (config, prompt, callback , extra ) {
                     import('ai').then((aiModule) => {
                         const generateImage = aiModule.experimental_generateImage;
                         args.model = vertex(config.model);
-                        generateImage(args).then((result) => {
-                            callback(null, result);
-                            processResponse(result);
-                        }).catch((error) => {
-                            callback(error.message, null);
-                        });
+                        if( modelCheck(args,config,callback) ) {
+                            generateImage(args).then((result) => {
+                                callback(null, result);
+                                processResponse(result);
+                            }).catch((error) => {
+                                callback(error.message, null);
+                            });
+                        }
                     }).catch((error) => {
                         callback(error.message, null);
                     });
@@ -305,12 +322,14 @@ module.exports = function (config, prompt, callback , extra ) {
                     import('ai').then((aiModule) => {
                         const generateImage = aiModule.experimental_generateImage;
                         args.model = anthropic(config.model);
-                        generateImage(args).then((result) => {
-                            callback(null, result);
-                            processResponse(result);
-                        }).catch((error) => {
-                            callback(error.message, null);
-                        });
+                        if( modelCheck(args,config,callback) ) {
+                            generateImage(args).then((result) => {
+                                callback(null, result);
+                                processResponse(result);
+                            }).catch((error) => {
+                                callback(error.message, null);
+                            });
+                        }
                     }).catch((error) => {
                         callback(error.message, null);
                     });
@@ -341,12 +360,14 @@ module.exports = function (config, prompt, callback , extra ) {
                     import('ai').then((aiModule) => {
                         const generateImage = aiModule.experimental_generateImage;
                         args.model = groq(config.model);
-                        generateImages(args).then((result) => {
-                            callback(null, result);
-                            processResponse(result);
-                        }).catch((error) => {
-                            callback(error.message, null);
-                        });
+                        if( modelCheck(args,config,callback) ) {
+                            generateImages(args).then((result) => {
+                                callback(null, result);
+                                processResponse(result);
+                            }).catch((error) => {
+                                callback(error.message, null);
+                            });
+                        }
                     }).catch((error) => {
                         callback(error.message, null);
                     });
@@ -377,12 +398,14 @@ module.exports = function (config, prompt, callback , extra ) {
                     import('ai').then((aiModule) => {
                         const generateImage = aiModule.experimental_generateImage;
                         args.model = xai(config.model);
-                        generateImage(args).then((result) => {
-                            callback(null, result);
-                            processResponse(result);
-                        }).catch((error) => {
-                            callback(error.message, null);
-                        });
+                        if( modelCheck(args,config,callback) ) {
+                            generateImage(args).then((result) => {
+                                callback(null, result);
+                                processResponse(result);
+                            }).catch((error) => {
+                                callback(error.message, null);
+                            });
+                        }
                     }).catch((error) => {
                         callback(error.message, null);
                     });
@@ -413,12 +436,14 @@ module.exports = function (config, prompt, callback , extra ) {
                     import('ai').then((aiModule) => {
                         const generateImage = aiModule.experimental_generateImage;
                         args.model = mistral(config.model);
-                        generateImage(args).then((result) => {
-                            callback(null, result);
-                            processResponse(result);
-                        }).catch((error) => {
-                            callback(error.message, null);
-                        });
+                        if( modelCheck(args,config,callback) ) {
+                            generateImage(args).then((result) => {
+                                callback(null, result);
+                                processResponse(result);
+                            }).catch((error) => {
+                                callback(error.message, null);
+                            });
+                        }
                     }).catch((error) => {
                         callback(error.message, null);
                     });
@@ -449,12 +474,14 @@ module.exports = function (config, prompt, callback , extra ) {
                     import('ai').then((aiModule) => {
                         const generateImage = aiModule.experimental_generateImage;
                         args.model = runware.image(config.model);
-                        generateImage(args).then((result) => {
-                            callback(null, result);
-                            processResponse(result);
-                        }).catch((error) => {
-                            callback(error.message, null);
-                        });
+                        if( modelCheck(args,config,callback) ) {
+                            generateImage(args).then((result) => {
+                                callback(null, result);
+                                processResponse(result);
+                            }).catch((error) => {
+                                callback(error.message, null);
+                            });
+                        }
                     }).catch((error) => {
                         callback(error.message, null);
                     });

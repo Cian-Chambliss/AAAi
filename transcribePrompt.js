@@ -33,6 +33,13 @@ module.exports = function (config, audio, callback , extra ) {
             args[propName] = extra[propName];
         }
     }
+    const modelCheck = function(args,config,callback) {
+        if( !args.model ) {            
+            callback("Model '"+config.model+"' not found.", null);
+            return false;
+        }
+        return true;
+    };
     const handlers = {
         //-------------------------------------------------------------------------------------------
         // OLLAMA AI text prompt driver
@@ -48,12 +55,14 @@ module.exports = function (config, audio, callback , extra ) {
                 import('ai').then((aiModule)  => {
                     const transcribe = aiModule.experimental_transcribe ;
                     args.model = ollama.transcription(config.model);
-                    transcribe(args).then((result) => {
-                        callback(null, result.text);
-                        processResponse(result);
-                    }).catch((error) => {
-                        callback(error.message, null);
-                    });
+                    if( modelCheck(args,config,callback) ) {
+                        transcribe(args).then((result) => {
+                            callback(null, result.text);
+                            processResponse(result);
+                        }).catch((error) => {
+                            callback(error.message, null);
+                        });
+                    }
                 }).catch((error) => {
                     callback(error.message, null);
                 });
@@ -90,12 +99,14 @@ module.exports = function (config, audio, callback , extra ) {
                     import('ai').then((aiModule)  => {
                         const transcribe = aiModule.experimental_transcribe;
                         args.model = openai.transcription(config.model);
-                        transcribe(args).then((result) => {
-                            callback(null, result.text);
-                            processResponse(result);
-                        }).catch((error) => {
-                            callback(error.message, null);
-                        });
+                        if( modelCheck(args,config,callback) ) {
+                            transcribe(args).then((result) => {
+                                callback(null, result.text);
+                                processResponse(result);
+                            }).catch((error) => {
+                                callback(error.message, null);
+                            });
+                        }
                     }).catch((error) => {
                         callback(error.message, null);
                     });
@@ -135,12 +146,14 @@ module.exports = function (config, audio, callback , extra ) {
                     import('ai').then((aiModule)  => {
                         const transcribe = aiModule.experimental_transcribe;
                         args.model = openai.transcription(config.model);
-                        transcribe(args).then((result) => {
-                            callback(null, result.text);
-                            processResponse(result);
-                        }).catch((error) => {
-                            callback(error.message, null);
-                        });
+                        if( modelCheck(args,config,callback) ) {
+                            transcribe(args).then((result) => {
+                                callback(null, result.text);
+                                processResponse(result);
+                            }).catch((error) => {
+                                callback(error.message, null);
+                            });
+                        }
                     }).catch((error) => {
                         callback(error.message, null);
                     });
@@ -170,12 +183,14 @@ module.exports = function (config, audio, callback , extra ) {
                     import('ai').then((aiModule)  => {
                         const transcribe = aiModule.experimental_transcribe ;
                         args.model = google.transcription(config.model);
-                        transcribe(args).then((result) => {
-                            callback(null, result.text);
-                            processResponse(result);
-                        }).catch((error) => {
-                            callback(error.message, null);
-                        });
+                        if( modelCheck(args,config,callback) ) {
+                            transcribe(args).then((result) => {
+                                callback(null, result.text);
+                                processResponse(result);
+                            }).catch((error) => {
+                                callback(error.message, null);
+                            });
+                        }
                     }).catch((error) => {
                         callback(error.message, null);
                     });
@@ -211,12 +226,14 @@ module.exports = function (config, audio, callback , extra ) {
                     import('ai').then((aiModule)  => {
                         const transcribe = aiModule.experimental_transcribe ;
                         args.model = vertex.transcription(config.model);
-                        transcribe(args).then((result) => {
-                            callback(null, result.text);
-                            processResponse(result);
-                        }).catch((error) => {
-                            callback(error.message, null);
-                        });
+                        if( modelCheck(args,config,callback) ) {
+                            transcribe(args).then((result) => {
+                                callback(null, result.text);
+                                processResponse(result);
+                            }).catch((error) => {
+                                callback(error.message, null);
+                            });
+                        }
                     }).catch((error) => {
                         callback(error.message, null);
                     });
@@ -247,12 +264,14 @@ module.exports = function (config, audio, callback , extra ) {
                     import('ai').then((aiModule)  => {
                         const transcribe = aiModule.experimental_transcribe ;
                         args.model = anthropic.transcription(config.model);
-                        transcribe(args).then((result) => {
-                            callback(null, result.text);
-                            processResponse(result);
-                        }).catch((error) => {
-                            callback(error.message, null);
-                        });
+                        if( modelCheck(args,config,callback) ) {
+                            transcribe(args).then((result) => {
+                                callback(null, result.text);
+                                processResponse(result);
+                            }).catch((error) => {
+                                callback(error.message, null);
+                            });
+                        }
                     }).catch((error) => {
                         callback(error.message, null);
                     });
@@ -283,12 +302,14 @@ module.exports = function (config, audio, callback , extra ) {
                     import('ai').then((aiModule)  => {
                         const transcribe = aiModule.experimental_transcribe ;
                         args.model = groq.transcription(config.model);
-                        transcribe(args).then((result) => {
-                            callback(null, result.text);
-                            processResponse(result);
-                        }).catch((error) => {
-                            callback(error.message, null);
-                        });
+                        if( modelCheck(args,config,callback) ) {
+                            transcribe(args).then((result) => {
+                                callback(null, result.text);
+                                processResponse(result);
+                            }).catch((error) => {
+                                callback(error.message, null);
+                            });
+                        }
                     }).catch((error) => {
                         callback(error.message, null);
                     });
@@ -319,12 +340,14 @@ module.exports = function (config, audio, callback , extra ) {
                     import('ai').then((aiModule)  => {
                         const transcribe = aiModule.experimental_transcribe ;
                         args.model = xai.transcription(config.model);
-                        transcribe(args).then((result) => {
-                            callback(null, result.text);
-                            processResponse(result);
-                        }).catch((error) => {
-                            callback(error.message, null);
-                        });
+                        if( modelCheck(args,config,callback) ) {
+                            transcribe(args).then((result) => {
+                                callback(null, result.text);
+                                processResponse(result);
+                            }).catch((error) => {
+                                callback(error.message, null);
+                            });
+                        }
                     }).catch((error) => {
                         callback(error.message, null);
                     });
@@ -355,12 +378,14 @@ module.exports = function (config, audio, callback , extra ) {
                     import('ai').then((aiModule)  => {
                         const transcribe = aiModule.experimental_transcribe ;
                         args.model = mistral.transcription(config.model);
-                        transcribe(args).then((result) => {
-                            callback(null, result.text);
-                            processResponse(result);
-                        }).catch((error) => {
-                            callback(error.message, null);
-                        });
+                        if( modelCheck(args,config,callback) ) {
+                            transcribe(args).then((result) => {
+                                callback(null, result.text);
+                                processResponse(result);
+                            }).catch((error) => {
+                                callback(error.message, null);
+                            });
+                        }
                     }).catch((error) => {
                         callback(error.message, null);
                     });

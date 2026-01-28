@@ -80,6 +80,14 @@ module.exports = function (config, prompt, callback , extra ) {
         //abortSignal - look at implementing
         //Tool Calling - loop at implementing - need some examples 
     }
+    const modelCheck = function(args,config,callback) {
+        if( !args.model ) {            
+            callback("Model '"+config.model+"' not found.", null);
+            return false;
+        }
+        return true;
+    };
+
     const handlers = {
         //-------------------------------------------------------------------------------------------
         // OLLAMA AI text prompt driver
@@ -95,12 +103,14 @@ module.exports = function (config, prompt, callback , extra ) {
                 import('ai').then((aiModule) => {
                     const generateSpeech = aiModule.experimental_generateSpeech ;
                     args.model = ollama.speech(config.model);
-                    generateSpeech(args).then((result) => {
-                        callback(null, result);
-                        processResponse(result);
-                    }).catch((error) => {
-                        callback(error.message, null);
-                    });
+                    if( modelCheck(args,config,callback) ) {
+                        generateSpeech(args).then((result) => {
+                            callback(null, result);
+                            processResponse(result);
+                        }).catch((error) => {
+                            callback(error.message, null);
+                        });
+                    }
                 }).catch((error) => {
                     callback(error.message, null);
                 });
@@ -137,12 +147,14 @@ module.exports = function (config, prompt, callback , extra ) {
                     import('ai').then((aiModule) => {
                         const generateSpeech = aiModule.experimental_generateSpeech ;
                         args.model = openai.speech(config.model);
-                        generateSpeech(args).then((result) => {
-                            callback(null, result);
-                            processResponse(result);
-                        }).catch((error) => {
-                            callback(error.message, null);
-                        });
+                        if( modelCheck(args,config,callback) ) {
+                            generateSpeech(args).then((result) => {
+                                callback(null, result);
+                                processResponse(result);
+                            }).catch((error) => {
+                                callback(error.message, null);
+                            });
+                        }
                     }).catch((error) => {
                         callback(error.message, null);
                     });
@@ -183,12 +195,14 @@ module.exports = function (config, prompt, callback , extra ) {
                     import('ai').then((aiModule) => {
                         const generateSpeech = aiModule.experimental_generateSpeech ;
                         args.model = openai.speech(config.model);
-                        generateSpeech(args).then((result) => {
-                            callback(null, result);
-                            processResponse(result);
-                        }).catch((error) => {
-                            callback(error.message, null);
-                        });
+                        if( modelCheck(args,config,callback) ) {
+                            generateSpeech(args).then((result) => {
+                                callback(null, result);
+                                processResponse(result);
+                            }).catch((error) => {
+                                callback(error.message, null);
+                            });
+                        }
                     }).catch((error) => {
                         callback(error.message, null);
                     });
@@ -217,12 +231,14 @@ module.exports = function (config, prompt, callback , extra ) {
                     import('ai').then((aiModule) => {
                         const generateSpeech = aiModule.experimental_generateSpeech ;
                         args.model = google.speech(config.model);
-                        generateSpeech(args).then((result) => {
-                            callback(null, result);
-                            processResponse(result);
-                        }).catch((error) => {
-                            callback(error.message, null);
-                        });
+                        if( modelCheck(args,config,callback) ) {
+                            generateSpeech(args).then((result) => {
+                                callback(null, result);
+                                processResponse(result);
+                            }).catch((error) => {
+                                callback(error.message, null);
+                            });
+                        }
                     }).catch((error) => {
                         callback(error.message, null);
                     });
@@ -258,12 +274,14 @@ module.exports = function (config, prompt, callback , extra ) {
                     import('ai').then((aiModule) => {
                         const generateSpeech = aiModule.experimental_generateSpeech ;
                         args.model = vertex.speech(config.model);
-                        generateSpeech(args).then((result) => {
-                            callback(null, result);
-                            processResponse(result);
-                        }).catch((error) => {
-                            callback(error.message, null);
-                        });
+                        if( modelCheck(args,config,callback) ) {
+                            generateSpeech(args).then((result) => {
+                                callback(null, result);
+                                processResponse(result);
+                            }).catch((error) => {
+                                callback(error.message, null);
+                            });
+                        }
                     }).catch((error) => {
                         callback(error.message, null);
                     });
@@ -294,12 +312,14 @@ module.exports = function (config, prompt, callback , extra ) {
                     import('ai').then((aiModule) => {
                         const generateSpeech = aiModule.experimental_generateSpeech ;
                         args.model = anthropic.speech(config.model);
-                        generateSpeech(args).then((result) => {
-                            callback(null, result);
-                            processResponse(result);
-                        }).catch((error) => {
-                            callback(error.message, null);
-                        });
+                        if( modelCheck(args,config,callback) ) {
+                            generateSpeech(args).then((result) => {
+                                callback(null, result);
+                                processResponse(result);
+                            }).catch((error) => {
+                                callback(error.message, null);
+                            });
+                        }
                     }).catch((error) => {
                         callback(error.message, null);
                     });
@@ -330,12 +350,14 @@ module.exports = function (config, prompt, callback , extra ) {
                     import('ai').then((aiModule) => {
                         const generateSpeech = aiModule.experimental_generateSpeech ;
                         args.model = groq.speech(config.model);
-                        generateSpeechs(args).then((result) => {
-                            callback(null, result);
-                            processResponse(result);
-                        }).catch((error) => {
-                            callback(error.message, null);
-                        });
+                        if( modelCheck(args,config,callback) ) {
+                            generateSpeechs(args).then((result) => {
+                                callback(null, result);
+                                processResponse(result);
+                            }).catch((error) => {
+                                callback(error.message, null);
+                            });
+                        }
                     }).catch((error) => {
                         callback(error.message, null);
                     });
@@ -366,12 +388,14 @@ module.exports = function (config, prompt, callback , extra ) {
                     import('ai').then((aiModule) => {
                         const generateSpeech = aiModule.experimental_generateSpeech ;
                         args.model = xai.speech(config.model);
-                        generateSpeech(args).then((result) => {
-                            callback(null, result);
-                            processResponse(result);
-                        }).catch((error) => {
-                            callback(error.message, null);
-                        });
+                        if( modelCheck(args,config,callback) ) {
+                            generateSpeech(args).then((result) => {
+                                callback(null, result);
+                                processResponse(result);
+                            }).catch((error) => {
+                                callback(error.message, null);
+                            });
+                        }
                     }).catch((error) => {
                         callback(error.message, null);
                     });
@@ -402,12 +426,14 @@ module.exports = function (config, prompt, callback , extra ) {
                     import('ai').then((aiModule) => {
                         const generateSpeech = aiModule.experimental_generateSpeech ;
                         args.model = mistral(config.model);
-                        generateSpeech(args).then((result) => {
-                            callback(null, result);
-                            processResponse(result);
-                        }).catch((error) => {
-                            callback(error.message, null);
-                        });
+                        if( modelCheck(args,config,callback) ) {
+                            generateSpeech(args).then((result) => {
+                                callback(null, result);
+                                processResponse(result);
+                            }).catch((error) => {
+                                callback(error.message, null);
+                            });
+                        }
                     }).catch((error) => {
                         callback(error.message, null);
                     });
