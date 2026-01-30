@@ -21,7 +21,8 @@ module.exports = function () {
             "groq",
             "xai",
             "mistral",
-            "runware"
+            "runware",
+            "elevenlabs"
         ];
     };
     const ai = {
