@@ -7,6 +7,7 @@ module.exports = function () {
     const transcribePrompt = require("./transcribePrompt"); 
     const filesLoad = require("./filesLoad");
     const streamTextPrompt = require("./streamTextPrompt");
+    const makeImageResultSaver = require('./saveImageResults');
     const listProviders = function () {
         // Currently support providers
         return [
@@ -31,7 +32,8 @@ module.exports = function () {
         filesLoad: filesLoad ,
         listModels: listModels,
         listProviders: listProviders,
-        getProviderDefinition: getProviderDefinition
+        getProviderDefinition: getProviderDefinition,
+        makeImageResultSaver: makeImageResultSaver
     };
     return ai;
 };
