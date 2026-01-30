@@ -30,5 +30,20 @@
         "open-mistral-7b",
         "open-mixtral-8x7b",
         "open-mixtral-8x22b"
+    ],
+    "modeldescriptions": [
+        { "name": "pixtral-large-latest", "description": "Pixtral large vision-capable model.", "features": ["llm", "imagerecognition"] },
+        { "name": "mistral-large-latest", "description": "Latest large Mistral LLM.", "features": ["llm"] },
+        { "name": "mistral-medium-latest", "description": "Balanced Mistral LLM for performance.", "features": ["llm"] },
+        { "name": "mistral-medium-2505", "description": "Medium Mistral model (May 2025).", "features": ["llm"] },
+        { "name": "mistral-small-latest", "description": "Small, efficient Mistral LLM.", "features": ["llm"] },
+        { "name": "magistral-small-2506", "description": "Magistral small variant (June 2025).", "features": ["llm"] },
+        { "name": "magistral-medium-2506", "description": "Magistral medium variant (June 2025).", "features": ["llm"] },
+        { "name": "ministral-3b-latest", "description": "Ministral 3B compact LLM.", "features": ["llm"] },
+        { "name": "ministral-8b-latest", "description": "Ministral 8B efficient LLM.", "features": ["llm"] },
+        { "name": "pixtral-12b-2409", "description": "Pixtral 12B vision model (Sep 2024).", "features": ["llm", "imagerecognition"] },
+        { "name": "open-mistral-7b", "description": "Open Mistral 7B.", "features": ["llm"] },
+        { "name": "open-mixtral-8x7b", "description": "Mixture-of-experts 8x7B.", "features": ["llm"] },
+        { "name": "open-mixtral-8x22b", "description": "Mixture-of-experts 8x22B.", "features": ["llm"] }
     ]
 }

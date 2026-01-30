@@ -31,6 +31,21 @@
         "runware:30@1",
         "runware:31@1"
     ],
+    "modeldescriptions": [
+        { "name": "civitai:38784@44716", "description": "CivitAI model on Runware for image generation.", "features": ["generateimage"] },
+        { "name": "civitai:38784@44876", "description": "CivitAI model on Runware for image generation.", "features": ["generateimage"] },
+        { "name": "civitai:38784@44877", "description": "CivitAI model on Runware for image generation.", "features": ["generateimage"] },
+        { "name": "civitai:38784@44795", "description": "CivitAI model on Runware for image generation.", "features": ["generateimage"] },
+        { "name": "civitai:38784@44774", "description": "CivitAI model on Runware for image generation.", "features": ["generateimage"] },
+        { "name": "runware:20@1", "description": "Runware native image generation model.", "features": ["generateimage"] },
+        { "name": "runware:25@1", "description": "Runware native image generation model.", "features": ["generateimage"] },
+        { "name": "runware:26@1", "description": "Runware native image generation model.", "features": ["generateimage"] },
+        { "name": "runware:27@1", "description": "Runware native image generation model.", "features": ["generateimage"] },
+        { "name": "runware:28@1", "description": "Runware native image generation model.", "features": ["generateimage"] },
+        { "name": "runware:29@1", "description": "Runware native image generation model.", "features": ["generateimage"] },
+        { "name": "runware:30@1", "description": "Runware native image generation model.", "features": ["generateimage"] },
+        { "name": "runware:31@1", "description": "Runware native image generation model.", "features": ["generateimage"] }
+    ],
     "image": [
         {
             "name": "negativePrompt",

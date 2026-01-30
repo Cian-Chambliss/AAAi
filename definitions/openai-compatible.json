@@ -18,5 +18,8 @@
     ],
     "models": [
         "lamma"
+    ],
+    "modeldescriptions": [
+        { "name": "lamma", "description": "OpenAI-compatible LLM endpoint (generic).", "features": ["llm"] }
     ]
 }

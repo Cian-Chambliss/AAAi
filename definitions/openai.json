@@ -50,5 +50,25 @@
         "gpt-5-mini",
         "gpt-5-nano",
         "gpt-5-chat-latest"
+    ],
+    "modeldescriptions": [
+        { "name": "gpt-4.1", "description": "General-purpose GPT-4.1 model with multimodal understanding.", "features": ["llm", "imagerecognition"] },
+        { "name": "gpt-4.1-mini", "description": "Smaller, faster GPT-4.1 variant for cost-sensitive tasks.", "features": ["llm"] },
+        { "name": "gpt-4.1-nano", "description": "Lightweight GPT-4.1 variant for minimal latency.", "features": ["llm"] },
+        { "name": "gpt-4o", "description": "Omni model with strong multimodal capabilities.", "features": ["llm", "imagerecognition"] },
+        { "name": "gpt-4o-mini", "description": "Smaller omni model optimized for latency.", "features": ["llm", "imagerecognition"] },
+        { "name": "gpt-4o-audio-preview", "description": "Preview model for audio I/O (speech and transcription).", "features": ["llm", "imagerecognition", "texttospeech", "transcription"] },
+        { "name": "gpt-4-turbo", "description": "Optimized GPT-4 for performance with some multimodal support.", "features": ["llm", "imagerecognition"] },
+        { "name": "gpt-4", "description": "GPT-4 general-purpose model.", "features": ["llm"] },
+        { "name": "gpt-3.5-turbo", "description": "High-throughput GPT-3.5 model for standard tasks.", "features": ["llm"] },
+        { "name": "o1", "description": "Reasoning-first model for complex problem solving.", "features": ["llm", "thinking"] },
+        { "name": "o3-mini", "description": "Compact reasoning model for efficient inference.", "features": ["llm", "thinking"] },
+        { "name": "o3", "description": "Advanced reasoning model for complex tasks.", "features": ["llm", "thinking"] },
+        { "name": "o4-mini", "description": "Next-gen compact model tuned for efficiency.", "features": ["llm"] },
+        { "name": "chatgpt-4o-latest", "description": "Latest ChatGPT 4o experience with multimodal understanding.", "features": ["llm", "imagerecognition"] },
+        { "name": "gpt-5", "description": "Next-generation GPT model with advanced multimodal support.", "features": ["llm", "imagerecognition"] },
+        { "name": "gpt-5-mini", "description": "Compact GPT-5 variant for speed and cost.", "features": ["llm"] },
+        { "name": "gpt-5-nano", "description": "Ultra-compact GPT-5 variant for minimal latency.", "features": ["llm"] },
+        { "name": "gpt-5-chat-latest", "description": "Latest GPT-5 chat experience.", "features": ["llm"] }
     ]
 }

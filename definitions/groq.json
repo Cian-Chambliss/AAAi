@@ -35,5 +35,25 @@
         "grok-2-vision-1212",
         "grok-beta",
         "grok-vision-beta"
+    ],
+    "modeldescriptions": [
+        { "name": "grok-code-fast-1", "description": "Code-focused fast model.", "features": ["llm"] },
+        { "name": "grok-4", "description": "Advanced Grok model.", "features": ["llm"] },
+        { "name": "grok-3", "description": "Grok v3 general-purpose model.", "features": ["llm"] },
+        { "name": "grok-3-latest", "description": "Latest Grok v3.", "features": ["llm"] },
+        { "name": "grok-3-fast", "description": "Latency-optimized Grok v3.", "features": ["llm"] },
+        { "name": "grok-3-fast-latest", "description": "Latest fast Grok v3.", "features": ["llm"] },
+        { "name": "grok-3-mini", "description": "Compact Grok v3.", "features": ["llm"] },
+        { "name": "grok-3-mini-latest", "description": "Latest compact Grok v3.", "features": ["llm"] },
+        { "name": "grok-3-mini-fast", "description": "Compact fast Grok v3.", "features": ["llm"] },
+        { "name": "grok-3-mini-fast-latest", "description": "Latest compact fast Grok v3.", "features": ["llm"] },
+        { "name": "grok-2", "description": "Grok v2 model.", "features": ["llm"] },
+        { "name": "grok-2-latest", "description": "Latest Grok v2.", "features": ["llm"] },
+        { "name": "grok-2-1212", "description": "Grok v2 (Dec 12).", "features": ["llm"] },
+        { "name": "grok-2-vision", "description": "Grok v2 with vision support.", "features": ["llm", "imagerecognition"] },
+        { "name": "grok-2-vision-latest", "description": "Latest Grok v2 vision.", "features": ["llm", "imagerecognition"] },
+        { "name": "grok-2-vision-1212", "description": "Grok v2 vision (Dec 12).", "features": ["llm", "imagerecognition"] },
+        { "name": "grok-beta", "description": "Beta Grok model.", "features": ["llm"] },
+        { "name": "grok-vision-beta", "description": "Beta Grok vision model.", "features": ["llm", "imagerecognition"] }
     ]
 }

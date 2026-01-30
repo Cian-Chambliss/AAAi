@@ -42,5 +42,24 @@
         "claude-3-sonnet@20240229",
         "claude-3-haiku@20240307",
         "claude-3-opus@20240229"
+    ],
+    "modeldescriptions": [
+        { "name": "gemini-2.0-flash-001", "description": "Gemini 2.0 flash via Vertex AI.", "features": ["llm", "imagerecognition"] },
+        { "name": "gemini-2.0-flash-exp", "description": "Experimental Gemini 2.0 flash on Vertex.", "features": ["llm", "imagerecognition"] },
+        { "name": "gemini-1.5-flash", "description": "Gemini 1.5 flash on Vertex.", "features": ["llm", "imagerecognition"] },
+        { "name": "gemini-1.5-pro", "description": "Gemini 1.5 pro on Vertex.", "features": ["llm", "imagerecognition"] },
+        { "name": "imagen-3.0-generate-001", "description": "Imagen 3 image generation via Vertex.", "features": ["generateimage"] },
+        { "name": "imagen-3.0-generate-002", "description": "Imagen 3 image generation (v002).", "features": ["generateimage"] },
+        { "name": "imagen-3.0-fast-generate-001", "description": "Fast Imagen 3 generation via Vertex.", "features": ["generateimage"] },
+        { "name": "imagen-4.0-generate-preview-06-06", "description": "Imagen 4.0 preview generation.", "features": ["generateimage"] },
+        { "name": "imagen-4.0-fast-generate-preview-06-06", "description": "Fast Imagen 4.0 preview.", "features": ["generateimage"] },
+        { "name": "imagen-4.0-ultra-generate-preview-06-06", "description": "Ultra Imagen 4.0 preview generation.", "features": ["generateimage"] },
+        { "name": "claude-3-7-sonnet@20250219", "description": "Claude 3.7 Sonnet available via Vertex AI.", "features": ["llm", "imagerecognition"] },
+        { "name": "claude-3-5-sonnet-v2@20241022", "description": "Claude 3.5 Sonnet v2 via Vertex.", "features": ["llm", "imagerecognition"] },
+        { "name": "claude-3-5-sonnet@20240620", "description": "Claude 3.5 Sonnet via Vertex.", "features": ["llm", "imagerecognition"] },
+        { "name": "claude-3-5-haiku@20241022", "description": "Claude 3.5 Haiku via Vertex.", "features": ["llm", "imagerecognition"] },
+        { "name": "claude-3-sonnet@20240229", "description": "Claude 3 Sonnet via Vertex.", "features": ["llm", "imagerecognition"] },
+        { "name": "claude-3-haiku@20240307", "description": "Claude 3 Haiku via Vertex.", "features": ["llm", "imagerecognition"] },
+        { "name": "claude-3-opus@20240229", "description": "Claude 3 Opus via Vertex.", "features": ["llm", "imagerecognition"] }
     ]
 }
