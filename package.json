@@ -12,6 +12,7 @@
   },
   "dependencies": {
     "@ai-sdk/anthropic": "^2.0.17",
+    "@ai-sdk/elevenlabs": "^2.0.15",
     "@ai-sdk/google": "^2.0.14",
     "@ai-sdk/google-vertex": "^3.0.27",
     "@ai-sdk/groq": "^2.0.19",
