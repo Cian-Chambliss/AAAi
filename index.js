@@ -8,6 +8,7 @@ module.exports = function () {
     const filesLoad = require("./filesLoad");
     const streamTextPrompt = require("./streamTextPrompt");
     const makeImageResultSaver = require('./saveImageResults');
+    const makeSpeechResultSaver = require('./saveSpeechResults');
     const listProviders = function () {
         // Currently support providers
         return [
@@ -33,7 +34,8 @@ module.exports = function () {
         listModels: listModels,
         listProviders: listProviders,
         getProviderDefinition: getProviderDefinition,
-        makeImageResultSaver: makeImageResultSaver
+        makeImageResultSaver: makeImageResultSaver,
+        makeSpeechResultSaver: makeSpeechResultSaver
     };
     return ai;
 };
