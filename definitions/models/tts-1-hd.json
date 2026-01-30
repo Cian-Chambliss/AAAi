@@ -1,0 +1,38 @@
+{
+  "speech": [
+    {
+      "name": "voice",
+      "type": "string",
+      "description": "Pick a speaker for the voice",
+      "constraints": [
+        { "value": "alloy", "description": "Warm, balanced default voice" },
+        { "value": "verse", "description": "Expressive, dynamic narration" },
+        { "value": "coral", "description": "Friendly, bright tone" },
+        { "value": "sage", "description": "Calm, neutral announcer" },
+        { "value": "rody", "description": "Engaging, energetic delivery" },
+        { "value": "ash", "description": "Crisp, clear articulation" }
+      ]
+    },
+    {
+      "name": "outputFormat",
+      "type": "string",
+      "description": "Audio file format to generate",
+      "constraints": ["mp3", "wav", "flac", "opus", "aac"]
+    },
+    {
+      "name": "speed",
+      "type": "number",
+      "description": "Playback speed multiplier (1.0 is normal)"
+    },
+    {
+      "name": "instructions",
+      "type": "string",
+      "description": "System-level style/direction for the voiceover"
+    },
+    {
+      "name": "language",
+      "type": "string",
+      "description": "Desired language/locale (may be ignored by provider)"
+    }
+  ]
+}

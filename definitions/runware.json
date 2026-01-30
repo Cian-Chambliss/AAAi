@@ -30,6 +30,126 @@
         "runware:29@1",
         "runware:30@1",
         "runware:31@1"
+    ],
+    "image": [
+        {
+            "name": "negativePrompt",
+            "description": "Text to discourage in the generation (inverse of the main prompt).",
+            "type": "string",
+            "default": "__DEFAULT__"
+        },
+        {
+            "name": "numberResults",
+            "description": "Number of images to generate.",
+            "type": "number",
+            "default": "__DEFAULT__"
+        },
+        {
+            "name": "outputType",
+            "description": "Format of the returned image payload.",
+            "type": "string",
+            "constraits": ["URL", "base64Data", "dataURI"],
+            "default": "__DEFAULT__"
+        },
+        {
+            "name": "outputFormat",
+            "description": "File format of the generated images.",
+            "type": "string",
+            "constraits": ["JPG", "PNG", "WEBP"],
+            "default": "__DEFAULT__"
+        },
+        {
+            "name": "uploadEndpoint",
+            "description": "Public URL to upload generated image via HTTP PUT (e.g., pre-signed S3).",
+            "type": "string",
+            "default": "__DEFAULT__"
+        },
+        {
+            "name": "checkNSFW",
+            "description": "Enable or disable NSFW content check.",
+            "type": "boolean",
+            "default": "__DEFAULT__"
+        },
+        {
+            "name": "seedImage",
+            "description": "Seed image reference for img2img/inpainting/outpainting.",
+            "type": "string",
+            "constraits": ["UUIDv4", "dataURI", "base64", "URL"],
+            "default": "__DEFAULT__"
+        },
+        {
+            "name": "maskImage",
+            "description": "Mask image reference (same accepted formats as seedImage).",
+            "type": "string",
+            "constraits": ["UUIDv4", "dataURI", "base64", "URL"],
+            "default": "__DEFAULT__"
+        },
+        {
+            "name": "strength",
+            "description": "Influence of seed image for img2img/inpainting (higher = more faithful).",
+            "type": "number",
+            "default": "__DEFAULT__"
+        },
+        {
+            "name": "steps",
+            "description": "Number of inference steps (higher can improve detail).",
+            "type": "number",
+            "default": "__DEFAULT__"
+        },
+        {
+            "name": "scheduler",
+            "description": "Inference scheduler to use.",
+            "type": "string",
+            "default": "__DEFAULT__"
+        },
+        {
+            "name": "seed",
+            "description": "Random seed for reproducibility.",
+            "type": "number",
+            "default": "__DEFAULT__"
+        },
+        {
+            "name": "CFGScale",
+            "description": "Classifier-free guidance scale (prompt adherence).",
+            "type": "number",
+            "default": "__DEFAULT__"
+        },
+        {
+            "name": "clipSkip",
+            "description": "Skip CLIP layers for different style/variation trade-offs.",
+            "type": "number",
+            "default": "__DEFAULT__"
+        },
+        {
+            "name": "usePromptWeighting",
+            "description": "Enable word/phrase weight annotations in prompts.",
+            "type": "boolean",
+            "default": "__DEFAULT__"
+        },
+        {
+            "name": "includeCost",
+            "description": "Include the cost of the operation in the response.",
+            "type": "boolean",
+            "default": "__DEFAULT__"
+        },
+        {
+            "name": "outputQuality",
+            "description": "Quality/compression setting for output (if applicable).",
+            "type": "number",
+            "default": "__DEFAULT__"
+        },
+        {
+            "name": "width",
+            "description": "Output image width in pixels.",
+            "type": "number",
+            "default": "__DEFAULT__"
+        },
+        {
+            "name": "height",
+            "description": "Output image height in pixels.",
+            "type": "number",
+            "default": "__DEFAULT__"
+        }
     ]
 }
  
