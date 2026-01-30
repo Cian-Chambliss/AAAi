@@ -27,6 +27,7 @@
         "gemini-2.5-flash-lite",
         "gemini-2.5-flash-lite-preview-06-17",
         "gemini-2.0-flash",
+        "gemini-2.0-flash-lite",
         "gemini-1.5-pro",
         "gemini-1.5-pro-latest",
         "gemini-1.5-flash",
@@ -35,6 +36,7 @@
         "gemini-1.5-flash-8b-latest",
         "gemini-embedding-001",
         "text-embedding-004",
+        "multimodal-embedding-001",
         "imagen-3.0-generate-002"
     ],
     "modeldescriptions": [
@@ -43,6 +45,7 @@
         { "name": "gemini-2.5-flash-lite", "description": "Lightest 2.5 flash for lowest latency.", "features": ["llm", "imagerecognition"] },
         { "name": "gemini-2.5-flash-lite-preview-06-17", "description": "Preview of Gemini 2.5 flash-lite.", "features": ["llm", "imagerecognition"] },
         { "name": "gemini-2.0-flash", "description": "Earlier flash generation optimized for speed.", "features": ["llm", "imagerecognition"] },
+        { "name": "gemini-2.0-flash-lite", "description": "Lite variant of Gemini 2.0 flash for minimal latency.", "features": ["llm", "imagerecognition"] },
         { "name": "gemini-1.5-pro", "description": "Gemini 1.5 Pro multimodal model.", "features": ["llm", "imagerecognition"] },
         { "name": "gemini-1.5-pro-latest", "description": "Latest Gemini 1.5 Pro.", "features": ["llm", "imagerecognition"] },
         { "name": "gemini-1.5-flash", "description": "Gemini 1.5 Flash for lower latency.", "features": ["llm", "imagerecognition"] },
@@ -51,6 +54,7 @@
         { "name": "gemini-1.5-flash-8b-latest", "description": "Latest 8B flash variant.", "features": ["llm", "imagerecognition"] },
         { "name": "gemini-embedding-001", "description": "Embedding model for text/vector retrieval.", "features": [] },
         { "name": "text-embedding-004", "description": "High-quality text embedding model.", "features": [] },
+        { "name": "multimodal-embedding-001", "description": "Embeddings for text and images for retrieval.", "features": [] },
         { "name": "imagen-3.0-generate-002", "description": "Imagen 3 image generation model.", "features": ["generateimage"] }
     ]
 }

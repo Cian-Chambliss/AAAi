@@ -240,6 +240,6 @@ module.exports = function (config, callback, extra) {
     if (handlers[config.provider]) {
         return handlers[config.provider](config, callback, fallback);
     } else {
-        fallback(config.provider,callback);
+        fallback(config.provider,callback,returnDescriptions);
     }
 };
