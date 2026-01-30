@@ -119,6 +119,43 @@ module.exports = function (config, prompt, callback , extra ) {
             });
         },
         //-------------------------------------------------------------------------------------------
+        // ElevenLabs speech driver
+        "elevenlabs": function (config, prompt, callback) {
+            import('@ai-sdk/elevenlabs').then((module) => {
+                const createElevenLabs = module.createElevenLabs;
+                const settings = {
+                    apiKey: config.apikey
+                };
+                if (config.baseurl) {
+                    settings.baseURL = config.baseurl;
+                }
+                if (config.headers) {
+                    settings.headers = config.headers;
+                }
+                try {
+                    const eleven = createElevenLabs(settings);
+                    import('ai').then((aiModule) => {
+                        const generateSpeech = aiModule.experimental_generateSpeech;
+                        args.model = eleven.speech(config.model);
+                        if( modelCheck(args,config,callback) ) {
+                            generateSpeech(args).then((result) => {
+                                callback(null, result);
+                                processResponse(result);
+                            }).catch((error) => {
+                                callback(error.message, null);
+                            });
+                        }
+                    }).catch((error) => {
+                        callback(error.message, null);
+                    });
+                } catch (error) {
+                    callback(error.message, null);
+                }
+            }).catch((error) => {
+                callback(error.message, null);
+            });
+        },
+        //-------------------------------------------------------------------------------------------
         // OPENAI text prompt driver
         "openai": function (config, prompt, callback) {
             import('@ai-sdk/openai').then((module) => {

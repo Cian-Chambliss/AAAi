@@ -49,6 +49,11 @@ module.exports = function (provider) {
         // Runware  text prompt driver
         "runware": function () {
              return require("./definitions/runware.json");
+        },
+        //-------------------------------------------------------------------------------------------
+        // ElevenLabs speech provider
+        "elevenlabs": function () {
+             return require("./definitions/elevenlabs.json");
         }
     };
     if( provider == "" )

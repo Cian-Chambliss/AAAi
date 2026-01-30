@@ -1,0 +1,33 @@
+{
+    "properties": [
+        {
+            "name": "apikey",
+            "label": "API Key",
+            "description": "API key for ElevenLabs."
+        },
+        {
+            "name": "headers",
+            "description": "Additional headers to include with requests.",
+            "optional": true
+        },
+        {
+            "name": "baseurl",
+            "description": "Override base URL for the ElevenLabs API.",
+            "optional": true
+        }
+    ],
+    "models": [
+        "eleven_multilingual_v2",
+        "eleven_turbo_v2",
+        "eleven_flash_v2",
+        "eleven_turbo_v2_5",
+        "eleven_flash_v2_5"
+    ],
+    "modeldescriptions": [
+        { "name": "eleven_multilingual_v2", "description": "High-quality multilingual text-to-speech model.", "features": ["texttospeech"] },
+        { "name": "eleven_turbo_v2", "description": "Fast and natural TTS optimized for low latency.", "features": ["texttospeech"] },
+        { "name": "eleven_flash_v2", "description": "Ultra-fast TTS for near real-time responses.", "features": ["texttospeech"] },
+        { "name": "eleven_turbo_v2_5", "description": "Updated turbo TTS for improved latency and quality.", "features": ["texttospeech"] },
+        { "name": "eleven_flash_v2_5", "description": "Latest flash TTS with near-instant generation.", "features": ["texttospeech"] }
+    ]
+}

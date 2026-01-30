@@ -1,0 +1,44 @@
+{
+  "speech": [
+    {
+      "name": "voice",
+      "type": "string",
+      "description": "Select an ElevenLabs stock voice (custom voices also supported)",
+      "constraints": [
+        { "value": "Rachel", "description": "Warm, balanced narration" },
+        { "value": "Antoni", "description": "Engaging, expressive male" },
+        { "value": "Bella", "description": "Bright, friendly female" },
+        { "value": "Domi", "description": "Casual, natural delivery" },
+        { "value": "Elli", "description": "Clear, neutral announcer" },
+        { "value": "Josh", "description": "Confident, energetic male" },
+        { "value": "Adam", "description": "Crisp, articulate male" },
+        { "value": "Sam", "description": "Conversational general purpose" },
+        { "value": "Callum", "description": "Refined, calm narration" },
+        { "value": "Sarah", "description": "Warm, approachable female" },
+        { "value": "Charlie", "description": "Youthful, upbeat tone" },
+        { "value": "Eric", "description": "Deep, rich baritone" }
+      ]
+    },
+    {
+      "name": "outputFormat",
+      "type": "string",
+      "description": "Audio file format to generate",
+      "constraints": ["mp3", "wav", "ogg", "aac", "flac", "m4a"]
+    },
+    {
+      "name": "speed",
+      "type": "number",
+      "description": "Playback speed multiplier (1.0 is normal)"
+    },
+    {
+      "name": "instructions",
+      "type": "string",
+      "description": "Style and delivery guidance for the voice"
+    },
+    {
+      "name": "language",
+      "type": "string",
+      "description": "Language/locale (e.g., en-US, es-ES)"
+    }
+  ]
+}
