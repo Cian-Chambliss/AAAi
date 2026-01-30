@@ -2,6 +2,14 @@ module.exports = function (config, prompt, callback , extra ) {
     var numberOfImages  = 1;
     var imageSize = '1024x1024';
     var processResponse = function(response) {} ;
+    // Ensure we always pass a string to callback on errors
+    var errString = function(e) {
+        if (typeof e === 'string') return e;
+        if (e && typeof e.message === 'string') return e.message;
+        try { return JSON.stringify(e); } catch (_e) {}
+        try { return String(e); } catch (_e2) {}
+        return 'Unknown error';
+    };
     if( config.trackCallback ) {    
         processResponse = function( response ) {
             var usage = response.usage;
@@ -478,6 +486,48 @@ module.exports = function (config, prompt, callback , extra ) {
                         return;
                     }
 
+                    // Local file helpers for seedImage/maskImage
+                    var fs = null, pathMod = null;
+                    try { fs = require('fs'); pathMod = require('path'); } catch(_e) {}
+                    function looksLikeUUIDv4(str) {
+                        return typeof str === 'string' && /^(\{)?[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-4[0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}(\})?$/.test(str);
+                    }
+                    function isProbablyLocalPath(str) {
+                        if (typeof str !== 'string') return false;
+                        var s = str.trim();
+                        if (!s) return false;
+                        if (looksLikeUUIDv4(s)) return false;
+                        if (/^data:/i.test(s)) return false;
+                        if (/^https?:\/\//i.test(s)) return false;
+                        if (/^[a-zA-Z]:\\/.test(s)) return true; // Windows absolute
+                        if (s.indexOf('..') === 0 || s.indexOf('./') === 0 || s.indexOf('.\\') === 0) return true;
+                        if (s.indexOf('/') !== -1 || s.indexOf('\\') !== -1) return true;
+                        return false;
+                    }
+                    function guessMimeFromExt(filePath) {
+                        var ext = (filePath && typeof filePath === 'string') ? filePath.toLowerCase().split('.').pop() : '';
+                        if (ext === 'png') return 'image/png';
+                        if (ext === 'jpg' || ext === 'jpeg') return 'image/jpeg';
+                        if (ext === 'webp') return 'image/webp';
+                        return null;
+                    }
+                    function toDataURIFromFile(filePath) {
+                        return new Promise(function(resolve, reject){
+                            if (!fs || !pathMod) return reject(new Error('File system access is unavailable in this environment'));
+                            var mime = guessMimeFromExt(filePath);
+                            if (!mime) return reject(new Error('Unsupported image file extension for ' + filePath + ' (expected PNG/JPG/WEBP)'));
+                            fs.readFile(filePath, function(err, buf){
+                                if (err) return reject(err);
+                                try {
+                                    var b64 = Buffer.from(buf).toString('base64');
+                                    resolve('data:' + mime + ';base64,' + b64);
+                                } catch (e) {
+                                    reject(e);
+                                }
+                            });
+                        });
+                    }
+
                     // Derive prompt text from supported input shapes
                     let promptText = args.prompt;
                     if (!promptText && Array.isArray(args.messages)) {
@@ -524,24 +574,78 @@ module.exports = function (config, prompt, callback , extra ) {
 
                     if (typeof args.seed !== 'undefined') request.seed = args.seed;
 
-                    ensure.then(() => {
+                    // Map additional simple lower-case extras to Runware casing
+                    if (extra && typeof extra === 'object') {
+                        var map = {
+                            'positiveprompt': 'positivePrompt',
+                            'negativeprompt': 'negativePrompt',
+                            'numberresults': 'numberResults',
+                            'outputtype': 'outputType',
+                            'outputformat': 'outputFormat',
+                            'uploadendpoint': 'uploadEndpoint',
+                            'checknsfw': 'checkNSFW',
+                            'seed': 'seed',
+                            'width': 'width',
+                            'height': 'height',
+                            'steps': 'steps',
+                            'scheduler': 'scheduler',
+                            'cfgscale': 'CFGScale',
+                            'clipskip': 'clipSkip',
+                            'usepromptweighting': 'usePromptWeighting',
+                            'seedimage': 'seedImage',
+                            'maskimage': 'maskImage',
+                            'mask': 'maskImage',
+                            'strength': 'strength',
+                            'includecost': 'includeCost',
+                            'outputquality': 'outputQuality'
+                        };
+                        for (var k in extra) {
+                            if (!Object.prototype.hasOwnProperty.call(extra, k)) continue;
+                            var v = extra[k];
+                            if (v === undefined || v === null) continue;
+                            var lc = String(k).toLowerCase();
+                            var target = map[lc];
+                            if (!target) continue;
+                            var t = typeof v;
+                            var isSimple = (t === 'string' || t === 'number' || t === 'boolean');
+                            var allowsStringOnly = (target === 'seedImage' || target === 'maskImage');
+                            if (isSimple || (allowsStringOnly && typeof v === 'string')) {
+                                request[target] = v;
+                            }
+                        }
+                    }
+
+                    // Convert local file paths for seedImage/maskImage to data URIs if needed
+                    function prepareLocalImagesIfNeeded() {
+                        var tasks = [];
+                        ['seedImage','maskImage'].forEach(function(key){
+                            var val = request[key];
+                            if (typeof val === 'string' && isProbablyLocalPath(val)) {
+                                tasks.push(toDataURIFromFile(val).then(function(uri){ request[key] = uri; }));
+                            }
+                        });
+                        if (tasks.length === 0) return Promise.resolve();
+                        return Promise.all(tasks).then(function(){ return; });
+                    }
+
+                    prepareLocalImagesIfNeeded().then(function(){ return ensure; }).then(function() {
                         if (typeof client.imageInference !== 'function') {
                             callback('Unsupported @runware/sdk-js client: no image generation method found', null);
                             return;
                         }
                         return client.imageInference(request);
-                    }).then((result) => {
+                    }).then(function(result) {
                         if (typeof result === 'undefined') return; // already handled in previous branch
                         callback(null, result);
                         processResponse(result);
-                    }).catch((error) => {
-                        callback(error && (error.message || String(error)) , null);
+                    }).catch(function(error) {
+                        callback(errString(error), null);
                     });
                 } catch (error) {
-                    callback(error && (error.message || String(error)) , null);
+                    callback(errString(error), null);
                 }
             }).catch((error) => {
-                callback(error && (error.message || String(error)) , null);
+                callback(errString(error), null);
             });
         }
     };
