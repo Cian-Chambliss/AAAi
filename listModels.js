@@ -1,4 +1,19 @@
-module.exports = function (config, callback) {
+module.exports = function (config, callback, returnDescriptions) {
+    const getProviderDefinition = require("./getProviderDefinition");
+    const formatReturn = function(provider, names, wantDescriptions) {
+        if (!wantDescriptions) return names;
+        const def = getProviderDefinition(provider);
+        const descMap = new Map();
+        if (def && Array.isArray(def.modeldescriptions)) {
+            for (var i = 0; i < def.modeldescriptions.length; ++i) {
+                var m = def.modeldescriptions[i];
+                if (m && m.name) descMap.set(m.name, m.description || "");
+            }
+        }
+        return names.map(function(n){
+            return { name: n, description: descMap.get(n) || "" };
+        });
+    };
     const handlers = {
         //-------------------------------------------------------------------------------------------
         // OLLAMA AI text prompt driver
@@ -41,7 +56,7 @@ module.exports = function (config, callback) {
                             if(models[i].name)
                                 listed.push(models[i].name);
                         }
-                        callback(null,listed);
+                        callback(null, formatReturn("ollama", listed, returnDescriptions));
                     }  catch (error) {
                         callback(error.message, null);
                     }
@@ -91,15 +106,15 @@ module.exports = function (config, callback) {
                                 listed.push(models[i].id);
                         }
                         if( listed.length )
-                            callback(null,listed);
+                            callback(null, formatReturn("openai", listed, returnDescriptions));
                         else
-                            fallback("openai",callback);
+                            fallback("openai",callback, returnDescriptions);
                     }  catch (error) {
-                        fallback("openai",callback);
+                        fallback("openai",callback, returnDescriptions);
                     }
                 });
             }).on('error', (err) => {
-                fallback("openai",callback);
+                fallback("openai",callback, returnDescriptions);
             });
         },
         //-------------------------------------------------------------------------------------------
@@ -141,20 +156,29 @@ module.exports = function (config, callback) {
                         if( models[0].results ) {
                             models = models[0].results;
                         }
-                        for(var i = 0  ; i < models.length ; ++i ) {
-                            if(models[i].air)
-                                listed.push(models[i].air);
+                        if( returnDescriptions ) {
+                            for(var i = 0  ; i < models.length ; ++i ) {
+                                if(models[i].air) {
+                                    listed.push({ "name" : models[i].air , "description" : models[i].name });
+                                }
+                            }
+                        } else {
+                            for(var i = 0  ; i < models.length ; ++i ) {
+                                if(models[i].air)
+                                    listed.push(models[i].air);
+                            }
                         }
-                        if( listed.length )
-                            callback(null,listed,models);
+                        if( listed.length ) {
+                            callback(null, listed, models);
+                        }
                         else
-                            fallback("runware",callback);
+                            fallback("runware",callback, returnDescriptions);
                     }  catch (error) {
-                        fallback("runware",callback);
+                        fallback("runware",callback, returnDescriptions);
                     }
                 });
             }).on('error', (err) => {
-                fallback("runware",callback);
+                fallback("runware",callback, returnDescriptions);
             });
             //{ "taskType": "authentication", "apiKey": config.apikey }, 
             const crypto = require('crypto');
@@ -170,8 +194,7 @@ module.exports = function (config, callback) {
     } else if (typeof config !== 'object') {
         config = { provider : config };
     }
-    const fallback = function (provider,callback) {
-        const getProviderDefinition = require("./getProviderDefinition");
+    const fallback = function (provider,callback, wantDescriptions) {
         const def = getProviderDefinition(provider);
         var models = null;
         if (def) {
@@ -180,7 +203,7 @@ module.exports = function (config, callback) {
             }
         }
         if( models ) {
-            callback(null,models);
+            callback(null, formatReturn(provider, models, wantDescriptions));
         } else {
             callback("Error - could not find any models",null);
         }
