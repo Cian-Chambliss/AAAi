@@ -12,158 +12,319 @@
         },
         {
             "name": "baseurl",
-            "description": "url for the mistral service.",
+            "description": "url for the runware service.",
             "optional": true
         }
     ],
     "models": [
         "civitai:38784@44716",
-        "civitai:38784@44876",
-        "civitai:38784@44877",
-        "civitai:38784@44795",
-        "civitai:38784@44774",
-        "runware:20@1",
-        "runware:25@1",
-        "runware:26@1",
-        "runware:27@1",
-        "runware:28@1",
-        "runware:29@1",
-        "runware:30@1",
-        "runware:31@1"
+        "runware:20@1"
     ],
     "modeldescriptions": [
         { "name": "civitai:38784@44716", "description": "CivitAI model on Runware for image generation.", "features": ["generateimage"] },
-        { "name": "civitai:38784@44876", "description": "CivitAI model on Runware for image generation.", "features": ["generateimage"] },
-        { "name": "civitai:38784@44877", "description": "CivitAI model on Runware for image generation.", "features": ["generateimage"] },
-        { "name": "civitai:38784@44795", "description": "CivitAI model on Runware for image generation.", "features": ["generateimage"] },
-        { "name": "civitai:38784@44774", "description": "CivitAI model on Runware for image generation.", "features": ["generateimage"] },
-        { "name": "runware:20@1", "description": "Runware native image generation model.", "features": ["generateimage"] },
-        { "name": "runware:25@1", "description": "Runware native image generation model.", "features": ["generateimage"] },
-        { "name": "runware:26@1", "description": "Runware native image generation model.", "features": ["generateimage"] },
-        { "name": "runware:27@1", "description": "Runware native image generation model.", "features": ["generateimage"] },
-        { "name": "runware:28@1", "description": "Runware native image generation model.", "features": ["generateimage"] },
-        { "name": "runware:29@1", "description": "Runware native image generation model.", "features": ["generateimage"] },
-        { "name": "runware:30@1", "description": "Runware native image generation model.", "features": ["generateimage"] },
-        { "name": "runware:31@1", "description": "Runware native image generation model.", "features": ["generateimage"] }
+        { "name": "runware:20@1", "description": "Runware native image generation model.", "features": ["generateimage"] }
+    ],
+    "search": [
+        {
+            "name": "search",
+            "description": "Search term applied across name, AIR id, version and tags.",
+            "type": "string"
+        },
+        {
+            "name": "limit",
+            "description": "Maximum number of models to return.",
+            "type": "number"
+        },
+        {
+            "name": "offset",
+            "description": "Number of items to skip for pagination (min 0).",
+            "type": "number",
+            "disable" : true
+        },
+        {
+            "name": "architecture",
+            "description": "Model architecture to filter by.",
+            "type": "string",
+            "constraits": [
+                "flux1s",
+                "flux1d",
+                "fluxpro",
+                "fluxultra",
+                "fluxkontextdev",
+                "fluxkontextpro",
+                "fluxkontextmax",
+                "imagen3",
+                "imagen3fast",
+                "imagen4preview",
+                "imagen4ultra",
+                "imagen4fast",
+                "gemini_2_5_flash_image",
+                "hidreamfast",
+                "hidreamdev",
+                "hidreamfull",
+                "qwen_image",
+                "qwen_image_edit",
+                "qwen_image_edit_plus",
+                "flex_1_alpha",
+                "ideogram1",
+                "ideogram2a",
+                "ideogram2",
+                "ideogram3",
+                "sd1x",
+                "sdhyper",
+                "sd1xlcm",
+                "sdxl",
+                "sdxllcm",
+                "sdxldistilled",
+                "sdxlhyper",
+                "sdxllightning",
+                "sdxlturbo",
+                "sd3",
+                "pony"
+            ]
+        },
+        {
+            "name": "category",
+            "description": "High-level task category for the model.",
+            "type": "string",
+            "constraits": [
+                "checkpoint",
+                "lora",
+                "lycoris",
+                "controlnet",
+                "vae",
+                "embeddings"
+            ],
+            "allowOther": true
+        },
+        {
+            "name": "type",
+            "description": "Checkpoint subtype; only applies when category=checkpoint.",
+            "type": "string",
+            "constraits": ["base", "inpainting", "refiner"]
+        },
+        {
+            "name": "conditioning",
+            "description": "Required conditioning inputs the model must support.",
+            "type": "array",
+            "constraits": [
+                "blur",
+                "canny",
+                "depth",
+                "gray",
+                "hed",
+                "inpaint",
+                "inpaintdepth",
+                "lineart",
+                "lowquality",
+                "normal",
+                "openmlsd",
+                "openpose",
+                "outfit",
+                "pix2pix",
+                "qrcode",
+                "scribble",
+                "seg",
+                "shuffle",
+                "sketch",
+                "softedge",
+                "tile"
+            ],
+            "allowOther": true
+        },
+        {
+            "name": "visibility",
+            "description": "Filter by visibility: public, private, or all (default).",
+            "type": "string",
+            "constraits": ["public", "private", "all"]
+        },
+        {
+            "name": "tags",
+            "description": "One or more tags models must include (matches any).",
+            "type": "array",
+            "constraits": [
+                "text-to-image",
+                "image-to-image",
+                "inpainting",
+                "outpainting",
+                "upscaling",
+                "photorealistic",
+                "realistic",
+                "cinematic",
+                "anime",
+                "cartoon",
+                "3d",
+                "portrait",
+                "landscape",
+                "nsfw",
+                "controlnet",
+                "lora",
+                "checkpoint",
+                "style",
+                "stable-diffusion",
+                "sd15",
+                "sdxl",
+                "sd3",
+                "flux"
+            ],
+            "allowOther": true
+        },
+        {
+            "name": "filter.tags",
+            "description": "One or more tags models must include.",
+            "type": "array",
+            "constraits": [
+                "text-to-image",
+                "image-to-image",
+                "inpainting",
+                "outpainting",
+                "upscaling",
+                "photorealistic",
+                "realistic",
+                "cinematic",
+                "anime",
+                "cartoon",
+                "3d",
+                "portrait",
+                "landscape",
+                "nsfw",
+                "controlnet",
+                "lora",
+                "checkpoint",
+                "style",
+                "stable-diffusion",
+                "sd15",
+                "sdxl",
+                "sd3",
+                "flux"
+            ],
+            "allowOther": true,
+            "allowMultiple" : true
+        },
+        {
+            "name": "filter.provider",
+            "description": "Restrict results to a specific provider (e.g., civitai, runware).",
+            "type": "string"
+        },
+        {
+            "name": "filter.family",
+            "description": "Restrict results to a model family or series.",
+            "type": "string"
+        },
+        {
+            "name": "filter.type",
+            "description": "Restrict by model type.",
+            "type": "string",
+            "constraits": ["base", "inpainting", "refiner"]
+        },
+        {
+            "name": "filter.features",
+            "description": "Required capabilities the model must support.",
+            "type": "array"
+        }
     ],
     "image": [
         {
             "name": "negativePrompt",
             "description": "Text to discourage in the generation (inverse of the main prompt).",
-            "type": "string",
-            "default": "__DEFAULT__"
+            "type": "string"
         },
         {
             "name": "numberResults",
             "description": "Number of images to generate.",
-            "type": "number",
-            "default": "__DEFAULT__"
+            "type": "number"
         },
         {
             "name": "outputType",
             "description": "Format of the returned image payload.",
             "type": "string",
             "constraits": ["URL", "base64Data", "dataURI"],
-            "default": "__DEFAULT__"
+            "disable" : true
         },
         {
             "name": "outputFormat",
             "description": "File format of the generated images.",
             "type": "string",
             "constraits": ["JPG", "PNG", "WEBP"],
-            "default": "__DEFAULT__"
+            "disable" : true
         },
         {
             "name": "uploadEndpoint",
             "description": "Public URL to upload generated image via HTTP PUT (e.g., pre-signed S3).",
             "type": "string",
-            "default": "__DEFAULT__"
+            "disable" : true
         },
         {
             "name": "checkNSFW",
             "description": "Enable or disable NSFW content check.",
-            "type": "boolean",
-            "default": "__DEFAULT__"
+            "type": "boolean"
         },
         {
             "name": "seedImage",
             "description": "Seed image reference for img2img/inpainting/outpainting.",
             "type": "string",
-            "constraits": ["UUIDv4", "dataURI", "base64", "URL"],
-            "default": "__DEFAULT__"
+            "constraits": ["UUIDv4", "dataURI", "base64", "URL"]
         },
         {
             "name": "maskImage",
             "description": "Mask image reference (same accepted formats as seedImage).",
             "type": "string",
-            "constraits": ["UUIDv4", "dataURI", "base64", "URL"],
-            "default": "__DEFAULT__"
+            "constraits": ["UUIDv4", "dataURI", "base64", "URL"]
         },
         {
             "name": "strength",
             "description": "Influence of seed image for img2img/inpainting (higher = more faithful).",
-            "type": "number",
-            "default": "__DEFAULT__"
+            "type": "number"
         },
         {
             "name": "steps",
             "description": "Number of inference steps (higher can improve detail).",
-            "type": "number",
-            "default": "__DEFAULT__"
+            "type": "number"
         },
         {
             "name": "scheduler",
             "description": "Inference scheduler to use.",
-            "type": "string",
-            "default": "__DEFAULT__"
+            "type": "string"
         },
         {
             "name": "seed",
             "description": "Random seed for reproducibility.",
-            "type": "number",
-            "default": "__DEFAULT__"
+            "type": "number"
         },
         {
             "name": "CFGScale",
             "description": "Classifier-free guidance scale (prompt adherence).",
-            "type": "number",
-            "default": "__DEFAULT__"
+            "type": "number"
         },
         {
             "name": "clipSkip",
             "description": "Skip CLIP layers for different style/variation trade-offs.",
-            "type": "number",
-            "default": "__DEFAULT__"
+            "type": "number"
         },
         {
             "name": "usePromptWeighting",
             "description": "Enable word/phrase weight annotations in prompts.",
-            "type": "boolean",
-            "default": "__DEFAULT__"
+            "type": "boolean"
         },
         {
             "name": "includeCost",
             "description": "Include the cost of the operation in the response.",
-            "type": "boolean",
-            "default": "__DEFAULT__"
+            "type": "boolean"
         },
         {
             "name": "outputQuality",
             "description": "Quality/compression setting for output (if applicable).",
-            "type": "number",
-            "default": "__DEFAULT__"
+            "type": "number"
         },
         {
             "name": "width",
             "description": "Output image width in pixels.",
-            "type": "number",
-            "default": "__DEFAULT__"
+            "type": "number"
         },
         {
             "name": "height",
             "description": "Output image height in pixels.",
-            "type": "number",
-            "default": "__DEFAULT__"
+            "type": "number"
         }
     ]
 }

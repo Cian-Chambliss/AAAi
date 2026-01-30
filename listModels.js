@@ -1,5 +1,6 @@
-module.exports = function (config, callback, returnDescriptions) {
+module.exports = function (config, callback, extra) {
     const getProviderDefinition = require("./getProviderDefinition");
+    const returnDescriptions = !!(extra && extra.returnDescriptions);
     const formatReturn = function(provider, names, wantDescriptions) {
         if (!wantDescriptions) return names;
         const def = getProviderDefinition(provider);
@@ -183,8 +184,35 @@ module.exports = function (config, callback, returnDescriptions) {
             //{ "taskType": "authentication", "apiKey": config.apikey }, 
             const crypto = require('crypto');
             const guid = crypto.randomUUID();
-            req.write(JSON.stringify([{  "taskType": "modelSearch",
-                "taskUUID" : guid, "limit": 100 }]));
+            // Build modelSearch payload from extra (lowercase keys); map common aliases and dotted filters
+            var searchParams = {};
+            if (extra && typeof extra === "object") {
+                Object.keys(extra).forEach(function(k){
+                    if (!k || k !== k.toLowerCase()) return;
+                    var v = extra[k];
+                    // Map legacy/alias keys to Runware spec
+                    if (k === "query") {
+                        if (searchParams.search === undefined) searchParams.search = v;
+                        return;
+                    }
+                    // Flatten dotted keys like "filter.tags" -> "tags"
+                    if (k.indexOf('.') !== -1) {
+                        var parts = k.split('.');
+                        var last = parts[parts.length - 1];
+                        if (searchParams[last] === undefined) searchParams[last] = v;
+                        return;
+                    }
+                    // Copy as-is
+                    searchParams[k] = v;
+                });
+            }
+            var payload = [{
+                "taskType": "modelSearch",
+                "taskUUID": guid,
+                // spread user-supplied modelSearch params (e.g., query, filter, limit)
+                ...searchParams
+            }];
+            req.write(JSON.stringify(payload));
             req.end();
         }
     };
