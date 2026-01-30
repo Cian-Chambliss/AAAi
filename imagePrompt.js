@@ -457,39 +457,91 @@ module.exports = function (config, prompt, callback , extra ) {
         //-------------------------------------------------------------------------------------------
         // Runware image prompt driver
         "runware":function (config, prompt, callback) {
-            import('@runware/ai-sdk-provider').then((module) => {
-                const createRunware = module.createRunware;
-                // Initialize the OpenAI client with your API key
-                const settings = {
-                    apiKey: config.apikey
-                };
-                if (config.baseurl) {
-                    settings.baseURL = config.baseurl;
-                }
-                if (config.headers) {
-                    settings.headers = config.headers;
-                }
+            // NOTE: Migrated from '@runware/ai-sdk-provider' to '@runware/sdk-js'.
+            // Input mapping:
+            //   - ai-sdk 'prompt' -> sdk-js 'positivePrompt'
+            //   - ai-sdk 'n' -> sdk-js 'numberResults'
+            //   - ai-sdk 'size' (e.g. "1024x1024") -> sdk-js 'width' and 'height'
+            //   - ai-sdk 'model' -> sdk-js 'model'
+            // Response format difference:
+            //   Previously, ai.experimental_generateImage returned an AI SDK response object.
+            //   Now, '@runware/sdk-js' returns an array of image objects (ITextToImage[]), e.g.:
+            //     [{ imageURL, imageBase64Data, imageDataURI, taskUUID, ... }, ...]
+            //   Calling code should detect/branch, for example:
+            //     if (Array.isArray(result)) { /* handle Runware SDK images array */ }
+            //     else { /* handle AI SDK result object */ }
+            import('@runware/sdk-js').then((module) => {
                 try {
-                    const runware = createRunware(settings);
-                    import('ai').then((aiModule) => {
-                        const generateImage = aiModule.experimental_generateImage;
-                        args.model = runware.image(config.model);
-                        if( modelCheck(args,config,callback) ) {
-                            generateImage(args).then((result) => {
-                                callback(null, result);
-                                processResponse(result);
-                            }).catch((error) => {
-                                callback(error.message, null);
-                            });
+                    const RunwareCtor = module.Runware || module.default;
+                    if (!RunwareCtor) {
+                        callback("@runware/sdk-js did not export a Runware client", null);
+                        return;
+                    }
+
+                    // Derive prompt text from supported input shapes
+                    let promptText = args.prompt;
+                    if (!promptText && Array.isArray(args.messages)) {
+                        // Combine user/content fields into a single prompt string
+                        promptText = args.messages
+                            .map(m => (typeof m.content === 'string' ? m.content : ''))
+                            .filter(Boolean)
+                            .join('\n');
+                    }
+
+                    // Parse size "WxH"
+                    let width = 1024;
+                    let height = 1024;
+                    if (args.size && typeof args.size === 'string') {
+                        const parts = args.size.toLowerCase().split('x');
+                        const w = parseInt(parts[0], 10);
+                        const h = parseInt(parts[1], 10);
+                        if (!isNaN(w) && !isNaN(h)) {
+                            width = w;
+                            height = h;
                         }
+                    }
+
+                    const client = new RunwareCtor({
+                        apiKey: config.apikey,
+                        // sdk-js uses 'url' for custom server URL
+                        url: config.baseurl,
+                        // headers are not part of public ctor options but keep for forward-compat
+                        headers: config.headers
+                    });
+
+                    // Ensure connection if the SDK exposes that method
+                    const ensure = (client.ensureConnection && typeof client.ensureConnection === 'function')
+                        ? client.ensureConnection() : Promise.resolve();
+
+                    const request = {
+                        positivePrompt: promptText || '',
+                        negativePrompt: args.negativePrompt || (extra && (extra.negativePrompt || extra.negative)) || undefined,
+                        model: config.model,
+                        width: width,
+                        height: height,
+                        numberResults: args.n || 1
+                    };
+
+                    if (typeof args.seed !== 'undefined') request.seed = args.seed;
+
+                    ensure.then(() => {
+                        if (typeof client.imageInference !== 'function') {
+                            callback('Unsupported @runware/sdk-js client: no image generation method found', null);
+                            return;
+                        }
+                        return client.imageInference(request);
+                    }).then((result) => {
+                        if (typeof result === 'undefined') return; // already handled in previous branch
+                        callback(null, result);
+                        processResponse(result);
                     }).catch((error) => {
-                        callback(error.message, null);
+                        callback(error && (error.message || String(error)) , null);
                     });
                 } catch (error) {
-                    callback(error.message, null);
+                    callback(error && (error.message || String(error)) , null);
                 }
             }).catch((error) => {
-                callback(error.message, null);
+                callback(error && (error.message || String(error)) , null);
             });
         }
     };
