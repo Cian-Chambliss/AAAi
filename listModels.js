@@ -30,7 +30,7 @@ module.exports = function (config, callback, extra) {
                 var base = getBaseModelName(n);
                 if (base !== n) feats = featMap.get(base);
             }
-            if (Array.isArray(feats) && feats.length) item.character = feats.join(",");
+            if (Array.isArray(feats) && feats.length) item.features = feats.join(",");
             return item;
         });
     };
@@ -196,7 +196,7 @@ module.exports = function (config, callback, extra) {
                                         var base = getBaseModelName(models[i].air);
                                         if (base !== models[i].air) feats = featMap.get(base);
                                     }
-                                    if (Array.isArray(feats) && feats.length) item.character = feats.join(",");
+                                    if (Array.isArray(feats) && feats.length) item.features = feats.join(",");
                                     listed.push(item);
                                 }
                             }
