@@ -1,18 +1,37 @@
 module.exports = function (config, callback, extra) {
     const getProviderDefinition = require("./getProviderDefinition");
     const returnDescriptions = !!(extra && extra.returnDescriptions);
+    const getBaseModelName = function(name) {
+        if (!name || typeof name !== "string") return name;
+        const m = name.match(/^(.*?)-(latest|\d{4}-\d{2}-\d{2})$/);
+        if (m) return m[1];
+        return name;
+    };
     const formatReturn = function(provider, names, wantDescriptions) {
         if (!wantDescriptions) return names;
         const def = getProviderDefinition(provider);
         const descMap = new Map();
+        const featMap = new Map();
         if (def && Array.isArray(def.modeldescriptions)) {
             for (var i = 0; i < def.modeldescriptions.length; ++i) {
                 var m = def.modeldescriptions[i];
-                if (m && m.name) descMap.set(m.name, m.description || "");
+                if (m && m.name) {
+                    descMap.set(m.name, m.description || "");
+                    if (Array.isArray(m.features) && m.features.length) {
+                        featMap.set(m.name, m.features);
+                    }
+                }
             }
         }
         return names.map(function(n){
-            return { name: n, description: descMap.get(n) || "" };
+            var item = { name: n, description: descMap.get(n) || "" };
+            var feats = featMap.get(n);
+            if (!feats || !feats.length) {
+                var base = getBaseModelName(n);
+                if (base !== n) feats = featMap.get(base);
+            }
+            if (Array.isArray(feats) && feats.length) item.character = feats.join(",");
+            return item;
         });
     };
     const handlers = {
@@ -158,9 +177,27 @@ module.exports = function (config, callback, extra) {
                             models = models[0].results;
                         }
                         if( returnDescriptions ) {
+                            // enrich with features from provider definitions when available
+                            const def = getProviderDefinition("runware");
+                            const featMap = new Map();
+                            if (def && Array.isArray(def.modeldescriptions)) {
+                                for (var j = 0; j < def.modeldescriptions.length; ++j) {
+                                    var md = def.modeldescriptions[j];
+                                    if (md && md.name && Array.isArray(md.features) && md.features.length) {
+                                        featMap.set(md.name, md.features);
+                                    }
+                                }
+                            }
                             for(var i = 0  ; i < models.length ; ++i ) {
                                 if(models[i].air) {
-                                    listed.push({ "name" : models[i].air , "description" : models[i].name });
+                                    var item = { "name" : models[i].air , "description" : models[i].name };
+                                    var feats = featMap.get(models[i].air);
+                                    if (!feats || !feats.length) {
+                                        var base = getBaseModelName(models[i].air);
+                                        if (base !== models[i].air) feats = featMap.get(base);
+                                    }
+                                    if (Array.isArray(feats) && feats.length) item.character = feats.join(",");
+                                    listed.push(item);
                                 }
                             }
                         } else {
