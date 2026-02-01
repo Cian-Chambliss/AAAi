@@ -1,5 +1,6 @@
 module.exports = function () {
     const getProviderDefinition = require("./getProviderDefinition"); 
+    const getModelDefinition = require("./getModelDefinition");
     const listModels = require("./listModels");
     const textPrompt = require("./textPrompt"); 
     const imagePrompt = require("./imagePrompt"); 
@@ -35,6 +36,7 @@ module.exports = function () {
         listModels: listModels,
         listProviders: listProviders,
         getProviderDefinition: getProviderDefinition,
+        getModelDefinition: getModelDefinition,
         makeImageResultSaver: makeImageResultSaver,
         makeSpeechResultSaver: makeSpeechResultSaver
     };
