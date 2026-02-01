@@ -45,7 +45,7 @@
             "name": "architecture",
             "description": "Model architecture to filter by.",
             "type": "string",
-            "constraits": [
+            "constraints": [
                 "flux1s",
                 "flux1d",
                 "fluxpro",
@@ -87,7 +87,7 @@
             "name": "category",
             "description": "High-level task category for the model.",
             "type": "string",
-            "constraits": [
+            "constraints": [
                 "checkpoint",
                 "lora",
                 "lycoris",
@@ -101,13 +101,13 @@
             "name": "type",
             "description": "Checkpoint subtype; only applies when category=checkpoint.",
             "type": "string",
-            "constraits": ["base", "inpainting", "refiner"]
+            "constraints": ["base", "inpainting", "refiner"]
         },
         {
             "name": "conditioning",
             "description": "Required conditioning inputs the model must support.",
             "type": "array",
-            "constraits": [
+            "constraints": [
                 "blur",
                 "canny",
                 "depth",
@@ -136,13 +136,13 @@
             "name": "visibility",
             "description": "Filter by visibility: public, private, or all (default).",
             "type": "string",
-            "constraits": ["public", "private", "all"]
+            "constraints": ["public", "private", "all"]
         },
         {
             "name": "tags",
             "description": "One or more tags models must include (matches any).",
             "type": "array",
-            "constraits": [
+            "constraints": [
                 "text-to-image",
                 "image-to-image",
                 "inpainting",
@@ -173,7 +173,7 @@
             "name": "filter.tags",
             "description": "One or more tags models must include.",
             "type": "array",
-            "constraits": [
+            "constraints": [
                 "text-to-image",
                 "image-to-image",
                 "inpainting",
@@ -215,7 +215,7 @@
             "name": "filter.type",
             "description": "Restrict by model type.",
             "type": "string",
-            "constraits": ["base", "inpainting", "refiner"]
+            "constraints": ["base", "inpainting", "refiner"]
         },
         {
             "name": "filter.features",
@@ -238,14 +238,14 @@
             "name": "outputType",
             "description": "Format of the returned image payload.",
             "type": "string",
-            "constraits": ["URL", "base64Data", "dataURI"],
+            "constraints": ["URL", "base64Data", "dataURI"],
             "disable" : true
         },
         {
             "name": "outputFormat",
             "description": "File format of the generated images.",
             "type": "string",
-            "constraits": ["JPG", "PNG", "WEBP"],
+            "constraints": ["JPG", "PNG", "WEBP"],
             "disable" : true
         },
         {
@@ -263,13 +263,13 @@
             "name": "seedImage",
             "description": "Seed image reference for img2img/inpainting/outpainting.",
             "type": "string",
-            "constraits": ["UUIDv4", "dataURI", "base64", "URL"]
+            "constraints": ["UUIDv4", "dataURI", "base64", "URL"]
         },
         {
             "name": "maskImage",
             "description": "Mask image reference (same accepted formats as seedImage).",
             "type": "string",
-            "constraits": ["UUIDv4", "dataURI", "base64", "URL"]
+            "constraints": ["UUIDv4", "dataURI", "base64", "URL"]
         },
         {
             "name": "strength",
