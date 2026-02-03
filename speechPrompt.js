@@ -406,6 +406,73 @@ module.exports = function (config, prompt, callback , extra ) {
             });
         },
         //-------------------------------------------------------------------------------------------
+        // Hugging Face speech driver via @huggingface/inference
+        "huggingface": function (config, prompt, callback) {
+            import('@huggingface/inference').then((module) => {
+                try {
+                    const InferenceClient = module.InferenceClient || module.default || module;
+                    if (!InferenceClient) {
+                        callback("@huggingface/inference did not export InferenceClient", null);
+                        return;
+                    }
+                    const client = new InferenceClient(config.apikey, config.baseurl ? { endpointUrl: config.baseurl } : undefined);
+
+                    // Build inputs text from supported shapes
+                    let text = args.text;
+                    if (!text && Array.isArray(args.messages)) {
+                        try {
+                            text = args.messages
+                                .map(function(m){ return (m && typeof m.content === 'string') ? m.content : ''; })
+                                .filter(function(s){ return !!s; })
+                                .join('\n');
+                        } catch(_e) {}
+                    }
+                    if (!text || typeof text !== 'string') {
+                        callback('No text provided for Hugging Face text-to-speech', null);
+                        return;
+                    }
+
+                    const request = { model: config.model, inputs: text };
+                    function pickProvider(cfg) {
+                        var cand = cfg && (cfg.hfProvider || cfg.hfprovider || cfg.inferenceProvider || cfg.inferenceprovider || cfg.huggingfaceProvider || cfg.providerOverride || cfg.providerOption || cfg.provider);
+                        if (!cand) return undefined;
+                        if (String(cand).toLowerCase() === 'huggingface') return undefined;
+                        return cand;
+                    }
+                    const providerOverride = pickProvider(config);
+                    // Optional parameters: voice, speed, language
+                    const parameters = {};
+                    if (args.voice) parameters.voice = args.voice;
+                    if (args.speed) parameters.speed = args.speed;
+                    if (args.language) parameters.language = args.language;
+                    if (Object.keys(parameters).length) request.parameters = parameters;
+                    if (providerOverride) request.provider = providerOverride;
+
+                    client.textToSpeech(request).then(function(blob){
+                        return blob.arrayBuffer().then(function(buf){
+                            const uint8 = new Uint8Array(buf);
+                            let fmt = outputFormat;
+                            try {
+                                const mime = (blob && blob.type) ? String(blob.type).toLowerCase() : '';
+                                if (mime.indexOf('wav') !== -1) fmt = 'wav';
+                                else if (mime.indexOf('mp3') !== -1 || mime.indexOf('mpeg') !== -1) fmt = 'mp3';
+                                else if (mime.indexOf('ogg') !== -1) fmt = 'ogg';
+                            } catch(_e) {}
+                            const result = { audio: { uint8ArrayData: uint8, format: fmt } };
+                            callback(null, result);
+                            processResponse(result);
+                        });
+                    }).catch(function(error){
+                        callback(error && error.message ? error.message : String(error), null);
+                    });
+                } catch (error) {
+                    callback(error && error.message ? error.message : String(error), null);
+                }
+            }).catch((error) => {
+                callback(error && error.message ? error.message : String(error), null);
+            });
+        },
+        //-------------------------------------------------------------------------------------------
         // XAI text prompt driver
         "xai": function (config, prompt, callback) {
             import('@ai-sdk/xai ').then((module) => {

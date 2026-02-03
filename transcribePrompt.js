@@ -321,6 +321,102 @@ module.exports = function (config, audio, callback , extra ) {
             });
         },
         //-------------------------------------------------------------------------------------------
+        // Hugging Face transcription driver via @huggingface/inference
+        "huggingface": function (config, callback) {
+            import('@huggingface/inference').then((module) => {
+                try {
+                    const InferenceClient = module.InferenceClient || module.default || module;
+                    if (!InferenceClient) {
+                        callback("@huggingface/inference did not export InferenceClient", null);
+                        return;
+                    }
+                    const client = new InferenceClient(config.apikey, config.baseurl ? { endpointUrl: config.baseurl } : undefined);
+
+                    function isProbablyUrl(str) {
+                        return typeof str === 'string' && /^https?:\/\//i.test(str);
+                    }
+                    function isDataUri(str) {
+                        return typeof str === 'string' && /^data:/i.test(str);
+                    }
+                    function dataUriToBuffer(uri) {
+                        try {
+                            const idx = uri.indexOf(',');
+                            const meta = uri.substring(0, idx);
+                            const data = uri.substring(idx + 1);
+                            if (/;base64/i.test(meta)) return Buffer.from(data, 'base64');
+                            return Buffer.from(decodeURIComponent(data));
+                        } catch (e) { return null; }
+                    }
+
+                    function loadAudioAsBuffer(input) {
+                        return new Promise(function(resolve, reject){
+                            try {
+                                if (!input) return reject(new Error('No audio provided'));
+                                if (Buffer.isBuffer(input) || input instanceof Uint8Array || (input && typeof input.byteLength === 'number')) {
+                                    return resolve(Buffer.from(input));
+                                }
+                                if (typeof input === 'string') {
+                                    if (isDataUri(input)) {
+                                        const buf = dataUriToBuffer(input);
+                                        if (buf) return resolve(buf);
+                                        return reject(new Error('Invalid data URI'));
+                                    }
+                                    if (isProbablyUrl(input)) {
+                                        // Use global fetch if available
+                                        const fetchFn = (typeof fetch === 'function') ? fetch : null;
+                                        if (!fetchFn) return reject(new Error('fetch not available to load URL'));
+                                        fetchFn(input).then(function(res){
+                                            if (!res.ok) throw new Error('HTTP '+res.status);
+                                            return res.arrayBuffer();
+                                        }).then(function(ab){ resolve(Buffer.from(ab)); }).catch(reject);
+                                        return;
+                                    }
+                                    // Assume local file path
+                                    try {
+                                        const fs = require('fs');
+                                        return resolve(fs.readFileSync(input));
+                                    } catch(e) {
+                                        return reject(e);
+                                    }
+                                }
+                                return reject(new Error('Unsupported audio input type'));
+                            } catch (e) { reject(e); }
+                        });
+                    }
+
+                    function pickProvider(cfg) {
+                        var cand = cfg && (cfg.hfProvider || cfg.hfprovider || cfg.inferenceProvider || cfg.inferenceprovider || cfg.huggingfaceProvider || cfg.providerOverride || cfg.providerOption || cfg.provider);
+                        if (!cand) return undefined;
+                        if (String(cand).toLowerCase() === 'huggingface') return undefined;
+                        return cand;
+                    }
+                    const providerOverride = pickProvider(config);
+
+                    loadAudioAsBuffer(args.audio).then(function(buf){
+                        const req = { model: config.model, data: buf };
+                        if (providerOverride) req.provider = providerOverride;
+                        return client.automaticSpeechRecognition(req);
+                    }).then(function(result){
+                        let text = null;
+                        if (!result) text = '';
+                        else if (typeof result === 'string') text = result;
+                        else if (result.text) text = result.text;
+                        else if (result.transcription) text = result.transcription;
+                        else if (Array.isArray(result) && result.length && result[0] && result[0].text) text = result[0].text;
+                        else text = '';
+                        callback(null, text);
+                        processResponse({ usage: { inputTokens:0, outputTokens:0, totalTokens:0 } });
+                    }).catch(function(error){
+                        callback(error && error.message ? error.message : String(error), null);
+                    });
+                } catch (error) {
+                    callback(error && error.message ? error.message : String(error), null);
+                }
+            }).catch((error) => {
+                callback(error && error.message ? error.message : String(error), null);
+            });
+        },
+        //-------------------------------------------------------------------------------------------
         // XAI text prompt driver
         "xai": function (config, callback) {
             import('@ai-sdk/xai ').then((module) => {

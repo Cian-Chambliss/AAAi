@@ -1,0 +1,49 @@
+{
+  "properties": [
+    {
+      "name": "apikey",
+      "label": "API Key",
+      "description": "Hugging Face API key for the Inference (Router) API."
+    },
+    {
+      "name": "headers",
+      "description": "Optional headers to include with requests.",
+      "optional": true
+    },
+    {
+      "name": "baseurl",
+      "description": "Optional base URL for the Hugging Face Inference API (leave blank to use default).",
+      "optional": true
+    },
+    {
+      "name": "hfprovider",
+      "description": "Optional inference provider for requests (e.g. auto, hf-inference, replicate, together). If unset, defaults to auto.",
+      "optional": true,
+      "type": "string"
+    }
+  ],
+  "models": [
+    "meta-llama/Llama-3.1-8B-Instruct",
+    "meta-llama/Llama-3.1-70B-Instruct"
+  ],
+  "modeldescriptions": [
+    {
+      "name": "meta-llama/Llama-3.1-8B-Instruct",
+      "description": "Llama 3.1 8B Instruct – capable general LLM optimized for instruction following.",
+      "features": ["llm"]
+    },
+    {
+      "name": "meta-llama/Llama-3.1-70B-Instruct",
+      "description": "Llama 3.1 70B Instruct – larger, higher quality instruction-tuned model.",
+      "features": ["llm"]
+    }
+  ]
+  ,
+  "search": [
+    {
+      "name": "search",
+      "description": "Search term applied to Hugging Face model repositories (matches name/description/tags).",
+      "type": "string"
+    }
+  ]
+}

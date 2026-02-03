@@ -10,22 +10,23 @@ module.exports = function () {
     const streamTextPrompt = require("./streamTextPrompt");
     const makeImageResultSaver = require('./saveImageResults');
     const makeSpeechResultSaver = require('./saveSpeechResults');
-    const listProviders = function () {
-        // Currently support providers
-        return [
-            "ollama",
-            "openai",
-            "openai-compatible",
-            "google",
-            "google-vertex",
-            "anthropic",
-            "groq",
-            "xai",
-            "mistral",
-            "runware",
-            "elevenlabs"
-        ];
-    };
+        const listProviders = function () {
+            // Currently support providers
+            return [
+                "ollama",
+                "openai",
+                "openai-compatible",
+                "google",
+                "google-vertex",
+                "anthropic",
+                "groq",
+                "huggingface",
+                "xai",
+                "mistral",
+                "runware",
+                "elevenlabs"
+            ];
+        };
     const ai = {
         textPrompt: textPrompt ,
         streamTextPrompt : streamTextPrompt,

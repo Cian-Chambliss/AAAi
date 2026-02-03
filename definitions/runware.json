@@ -216,11 +216,6 @@
             "description": "Restrict by model type.",
             "type": "string",
             "constraints": ["base", "inpainting", "refiner"]
-        },
-        {
-            "name": "filter.features",
-            "description": "Required capabilities the model must support.",
-            "type": "array"
         }
     ],
     "image": [

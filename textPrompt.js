@@ -366,6 +366,43 @@ module.exports = function (config, prompt, callback , extra ) {
             });
         },
         //-------------------------------------------------------------------------------------------
+        // Hugging Face text prompt driver
+        "huggingface": function (config, prompt, callback) {
+            import('@ai-sdk/huggingface').then((module) => {
+                const createHuggingFace = module.createHuggingFace;
+                const settings = {
+                    apiKey: config.apikey
+                };
+                if (config.baseurl) {
+                    settings.baseURL = config.baseurl;
+                }
+                if (config.headers) {
+                    settings.headers = config.headers;
+                }
+                try {
+                    const hf = createHuggingFace(settings);
+                    import('ai').then((aiModule) => {
+                        const generateText = aiModule.generateText;
+                        args.model = hf(config.model);
+                        if( modelCheck(args,config,callback) ) {
+                            generateText(args).then((result) => {
+                                callback(null, result.text, result);
+                                processResponse(result);
+                            }).catch((error) => {
+                                callback(error.message, null);
+                            });
+                        }
+                    }).catch((error) => {
+                        callback(error.message, null);
+                    });
+                } catch (error) {
+                    callback(error.message, null);
+                }
+            }).catch((error) => {
+                callback(error.message, null);
+            });
+        },
+        //-------------------------------------------------------------------------------------------
         // XAI text prompt driver
         "xai": function (config, prompt, callback) {
             import('@ai-sdk/xai ').then((module) => {

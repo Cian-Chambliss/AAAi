@@ -310,6 +310,31 @@ module.exports = function (config, prompt, callback , eventcallback , extra ) {
             });
         },
         //-------------------------------------------------------------------------------------------
+        // Hugging Face text prompt driver
+        "huggingface": function (config, prompt, callback) {
+            import('@ai-sdk/huggingface').then((module) => {
+                const createHuggingFace = module.createHuggingFace;
+                const settings = {
+                    apiKey: config.apikey
+                };
+                if (config.baseurl) {
+                    settings.baseURL = config.baseurl;
+                }
+                if (config.headers) {
+                    settings.headers = config.headers;
+                }
+                try {
+                    const hf = createHuggingFace(settings);
+                    args.model = hf(config.model);
+                    streamAllText(config,prompt,args,callback,eventcallback);
+                } catch (error) {
+                    callback(error.message, null);
+                }
+            }).catch((error) => {
+                callback(error.message, null);
+            });
+        },
+        //-------------------------------------------------------------------------------------------
         // XAI text prompt driver
         "xai": function (config, prompt, callback) {
             import('@ai-sdk/xai ').then((module) => {

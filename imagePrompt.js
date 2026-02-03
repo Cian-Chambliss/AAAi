@@ -387,6 +387,86 @@ module.exports = function (config, prompt, callback , extra ) {
             });
         },
         //-------------------------------------------------------------------------------------------
+        // Hugging Face image driver via @huggingface/inference
+        "huggingface": function (config, prompt, callback) {
+            // Uses InferenceClient.textToImage. Returns result in a generic shape:
+            // { images: [ { base64: "..." }, ... ] }
+            import('@huggingface/inference').then((module) => {
+                try {
+                    const InferenceClient = module.InferenceClient || module.default || module;
+                    if (!InferenceClient) {
+                        callback("@huggingface/inference did not export InferenceClient", null);
+                        return;
+                    }
+                    const client = new InferenceClient(config.apikey, config.baseurl ? { endpointUrl: config.baseurl } : undefined);
+
+                    // Derive prompt text from supported input shapes
+                    let promptText = args.prompt;
+                    if (!promptText && Array.isArray(args.messages)) {
+                        try {
+                            promptText = args.messages
+                                .map(function(m){ return (m && typeof m.content === 'string') ? m.content : ''; })
+                                .filter(function(s){ return !!s; })
+                                .join('\n');
+                        } catch(_e) {}
+                    }
+                    if (!promptText || typeof promptText !== 'string') {
+                        callback('No prompt text provided for Hugging Face text-to-image', null);
+                        return;
+                    }
+
+                    // Parse size "WxH" into width/height parameters if provided
+                    let width = null, height = null;
+                    if (args.size && typeof args.size === 'string') {
+                        const parts = String(args.size).toLowerCase().split('x');
+                        const w = parseInt(parts[0], 10);
+                        const h = parseInt(parts[1], 10);
+                        if (!isNaN(w) && !isNaN(h)) { width = w; height = h; }
+                    }
+
+                    const count = Math.max(1, parseInt(args.n || 1, 10) || 1);
+
+                    // Optional provider override (avoid clobbering dispatch provider 'huggingface')
+                    function pickProvider(cfg) {
+                        var cand = cfg && (cfg.hfProvider || cfg.hfprovider || cfg.inferenceProvider || cfg.inferenceprovider || cfg.huggingfaceProvider || cfg.providerOverride || cfg.providerOption);
+                        if (!cand) return undefined;
+                        return cand;
+                    }
+                    const providerOverride = pickProvider(config);
+
+                    // Build a single call function that returns base64 string
+                    function oneCall() {
+                        const request = { model: config.model, inputs: promptText };
+                        const parameters = {};
+                        if (width && height) { parameters.width = width; parameters.height = height; }
+                        if (Object.keys(parameters).length) request.parameters = parameters;
+                        if (providerOverride) request.provider = providerOverride;
+                        return client.textToImage(request).then(function(blob){
+                            // Convert Blob to base64 via ArrayBuffer
+                            return blob.arrayBuffer().then(function(buf){
+                                return Buffer.from(buf).toString('base64');
+                            });
+                        });
+                    }
+
+                    const tasks = [];
+                    for (let i = 0; i < count; i++) tasks.push(oneCall());
+
+                    Promise.all(tasks).then(function(b64s){
+                        const result = { images: b64s.map(function(b){ return { base64: b }; }) };
+                        callback(null, result);
+                        processResponse(result);
+                    }).catch(function(error){
+                        callback(errString(error), null);
+                    });
+                } catch (error) {
+                    callback(errString(error), null);
+                }
+            }).catch((error) => {
+                callback(errString(error), null);
+            });
+        },
+        //-------------------------------------------------------------------------------------------
         // XAI text prompt driver
         "xai": function (config, prompt, callback) {
             import('@ai-sdk/xai ').then((module) => {

@@ -138,6 +138,72 @@ module.exports = function (config, callback, extra) {
             });
         },
         //-------------------------------------------------------------------------------------------
+        // HUGGINGFACE model list via public API
+        "huggingface": function (config, callback, fallback) {
+            var url = config.baseurl;
+            if (!url) {
+                url = "https://huggingface.co/api/models";
+            }
+            // Build query string from extra (lowercase keys). We currently honor: search, limit
+            var query = [];
+            if (extra && typeof extra === 'object') {
+                if (typeof extra.search === 'string' && extra.search.trim()) {
+                    query.push('search=' + encodeURIComponent(extra.search.trim()));
+                }
+                if (typeof extra.limit !== 'undefined') {
+                    var lim = parseInt(extra.limit, 10);
+                    if (!isNaN(lim) && lim > 0) query.push('limit=' + String(lim));
+                }
+            }
+            if (query.length) {
+                url += (url.indexOf('?') === -1 ? '?' : '&') + query.join('&');
+            }
+
+            var httpx = null;
+            const urlP = new URL(url);
+            if( urlP.protocol == "https:") {
+                httpx =  require('https');
+            } else {
+                httpx = require('http');
+            }
+            var options = {
+                hostname : urlP.hostname,
+                port : urlP.port,
+                path : urlP.pathname + (urlP.search || ''),
+                method : "GET",
+                headers: {
+                    'Content-Type': 'application/json'
+                }
+            };
+            httpx.get(options, (res) => {
+                let data = '';
+                res.on('data', (chunk) => { data += chunk; });
+                res.on('end', () => {
+                    try {
+                        const obj = JSON.parse(data);
+                        if (!Array.isArray(obj)) {
+                            return fallback("huggingface", callback, returnDescriptions);
+                        }
+                        const listed = [];
+                        for (var i = 0; i < obj.length; ++i) {
+                            var m = obj[i] || {};
+                            var id = m.modelId || m.id || m.name;
+                            if (id) listed.push(id);
+                        }
+                        if (listed.length) {
+                            callback(null, formatReturn("huggingface", listed, returnDescriptions));
+                        } else {
+                            fallback("huggingface", callback, returnDescriptions);
+                        }
+                    } catch (error) {
+                        fallback("huggingface", callback, returnDescriptions);
+                    }
+                });
+            }).on('error', (err) => {
+                fallback("huggingface", callback, returnDescriptions);
+            });
+        },
+        //-------------------------------------------------------------------------------------------
         // RUNWARE AI text prompt driver
         "runware" : function (config, callback,fallback) {
             var url = config.baseurl;

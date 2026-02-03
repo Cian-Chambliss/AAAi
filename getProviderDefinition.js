@@ -36,6 +36,11 @@ module.exports = function (provider) {
              return require("./definitions/groq.json");
         },
         //-------------------------------------------------------------------------------------------
+        // Hugging Face text prompt driver
+        "huggingface": function () {
+             return require("./definitions/huggingface.json");
+        },
+        //-------------------------------------------------------------------------------------------
         // XAI text prompt driver
         "xai": function () {
              return require("./definitions/xai.json");
