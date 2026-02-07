@@ -366,40 +366,117 @@ module.exports = function (config, prompt, callback , extra ) {
             });
         },
         //-------------------------------------------------------------------------------------------
-        // Hugging Face text prompt driver
+        // Hugging Face text or chat driver via @huggingface/inference
         "huggingface": function (config, prompt, callback) {
-            import('@ai-sdk/huggingface').then((module) => {
-                const createHuggingFace = module.createHuggingFace;
-                const settings = {
-                    apiKey: config.apikey
-                };
-                if (config.baseurl) {
-                    settings.baseURL = config.baseurl;
-                }
-                if (config.headers) {
-                    settings.headers = config.headers;
-                }
+            import('@huggingface/inference').then((module) => {
                 try {
-                    const hf = createHuggingFace(settings);
-                    import('ai').then((aiModule) => {
-                        const generateText = aiModule.generateText;
-                        args.model = hf(config.model);
-                        if( modelCheck(args,config,callback) ) {
-                            generateText(args).then((result) => {
-                                callback(null, result.text, result);
-                                processResponse(result);
-                            }).catch((error) => {
-                                callback(error.message, null);
-                            });
+                    const InferenceClient = module.InferenceClient || module.HfInference || module.default || module;
+                    if (!InferenceClient) {
+                        callback("@huggingface/inference did not export InferenceClient", null);
+                        return;
+                    }
+                    const client = new InferenceClient(
+                        config.apikey,
+                        config.baseurl ? { endpointUrl: config.baseurl } : undefined
+                    );
+
+                    // Derive prompt text from supported input shapes
+                    let promptText = args.prompt;
+                    if (!promptText && Array.isArray(args.messages)) {
+                        try {
+                            promptText = args.messages
+                                .map(function(m){ return (m && typeof m.content === 'string') ? m.content : ''; })
+                                .filter(function(s){ return !!s; })
+                                .join('\n');
+                        } catch(_e) {}
+                    }
+
+                    // Map common options to HF parameters
+                    const parameters = {};
+                    const maxTokens = args.maxOutputTokens || args.maxTokens;
+                    if (typeof maxTokens === 'number') {
+                        parameters.max_new_tokens = maxTokens; // text-generation
+                        parameters.max_tokens = maxTokens;      // chat-completions
+                    }
+                    if (typeof args.temperature === 'number') parameters.temperature = args.temperature;
+                    if (typeof args.topP === 'number') parameters.top_p = args.topP;
+                    if (typeof args.topK === 'number') parameters.top_k = args.topK;
+                    if (Array.isArray(args.stopSequences) && args.stopSequences.length) {
+                        parameters.stop = args.stopSequences;
+                        parameters.stop_sequences = args.stopSequences;
+                    }
+                    if (typeof args.seed === 'number') parameters.seed = args.seed;
+
+                    // Optional provider override (avoid clobbering dispatch provider 'huggingface')
+                    function pickProvider(cfg) {
+                        var cand = cfg && (cfg.hfProvider || cfg.hfprovider || cfg.inferenceProvider || cfg.inferenceprovider || cfg.huggingfaceProvider || cfg.providerOverride || cfg.providerOption);
+                        if (!cand) return undefined;
+                        return cand;
+                    }
+                    const providerOverride = pickProvider(config);
+
+                    const useChat = !!config.conversational;
+                    if (useChat && typeof client.chatCompletion === 'function') {
+                        // Prefer messages if provided, else wrap the promptText into a single user message
+                        let messages = Array.isArray(args.messages) && args.messages.length
+                            ? args.messages
+                            : (promptText ? [{ role: 'user', content: String(promptText) }] : []);
+
+                        if (!messages.length) {
+                            callback('No prompt or messages provided for Hugging Face chat completion', null);
+                            return;
                         }
-                    }).catch((error) => {
-                        callback(error.message, null);
-                    });
+
+                        const req = Object.assign({ model: config.model, messages: messages }, parameters);
+                        if (providerOverride) req.provider = providerOverride;
+
+                        client.chatCompletion(req).then(function(res){
+                            // res.choices[0].message.content typical shape
+                            var text = '';
+                            if (res && Array.isArray(res.choices) && res.choices.length) {
+                                var msg = res.choices[0].message;
+                                text = (msg && (msg.content || msg.text)) || '';
+                            } else if (res && res.message && res.message.content) {
+                                text = res.message.content;
+                            }
+                            var resultObj = { text: text, usage: { inputTokens:0, outputTokens:0, totalTokens:0 } };
+                            callback(null, resultObj.text, resultObj);
+                            processResponse(resultObj);
+                        }).catch(function(error){
+                            callback(error && error.message ? error.message : String(error), null);
+                        });
+                    } else {
+                        // Fallback to text generation
+                        if (!promptText || typeof promptText !== 'string') {
+                            callback('No prompt text provided for Hugging Face text generation', null);
+                            return;
+                        }
+                        const request = { model: config.model, inputs: promptText };
+                        if (Object.keys(parameters).length) request.parameters = parameters;
+                        if (providerOverride) request.provider = providerOverride;
+
+                        client.textGeneration(request).then(function(res){
+                            // res can be { generated_text } or array; be defensive
+                            var text = '';
+                            if (!res) text = '';
+                            else if (typeof res === 'string') text = res;
+                            else if (res.generated_text) text = res.generated_text;
+                            else if (Array.isArray(res) && res.length) {
+                                var r0 = res[0];
+                                text = (r0 && (r0.generated_text || r0.text)) || '';
+                            }
+                            var resultObj = { text: text, usage: { inputTokens:0, outputTokens:0, totalTokens:0 } };
+                            callback(null, resultObj.text, resultObj);
+                            processResponse(resultObj);
+                        }).catch(function(error){
+                            callback(error && error.message ? error.message : String(error), null);
+                        });
+                    }
                 } catch (error) {
-                    callback(error.message, null);
+                    callback(error && error.message ? error.message : String(error), null);
                 }
             }).catch((error) => {
-                callback(error.message, null);
+                callback(error && error.message ? error.message : String(error), null);
             });
         },
         //-------------------------------------------------------------------------------------------

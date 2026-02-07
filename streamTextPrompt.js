@@ -310,28 +310,153 @@ module.exports = function (config, prompt, callback , eventcallback , extra ) {
             });
         },
         //-------------------------------------------------------------------------------------------
-        // Hugging Face text prompt driver
+        // Hugging Face text or chat driver via @huggingface/inference (streaming)
         "huggingface": function (config, prompt, callback) {
-            import('@ai-sdk/huggingface').then((module) => {
-                const createHuggingFace = module.createHuggingFace;
-                const settings = {
-                    apiKey: config.apikey
-                };
-                if (config.baseurl) {
-                    settings.baseURL = config.baseurl;
-                }
-                if (config.headers) {
-                    settings.headers = config.headers;
-                }
+            import('@huggingface/inference').then((module) => {
                 try {
-                    const hf = createHuggingFace(settings);
-                    args.model = hf(config.model);
-                    streamAllText(config,prompt,args,callback,eventcallback);
+                    const InferenceClient = module.InferenceClient || module.HfInference || module.default || module;
+                    if (!InferenceClient) {
+                        callback("@huggingface/inference did not export InferenceClient", null);
+                        return;
+                    }
+                    const client = new InferenceClient(
+                        config.apikey,
+                        config.baseurl ? { endpointUrl: config.baseurl } : undefined
+                    );
+
+                    // Derive prompt text from supported input shapes
+                    let promptText = args.prompt;
+                    if (!promptText && Array.isArray(args.messages)) {
+                        try {
+                            promptText = args.messages
+                                .map(function(m){ return (m && typeof m.content === 'string') ? m.content : ''; })
+                                .filter(function(s){ return !!s; })
+                                .join('\n');
+                        } catch(_e) {}
+                    }
+
+                    // Map common options to HF parameters
+                    const parameters = {};
+                    const maxTokens = args.maxOutputTokens || args.maxTokens;
+                    if (typeof maxTokens === 'number') {
+                        parameters.max_new_tokens = maxTokens; // text-generation
+                        parameters.max_tokens = maxTokens;      // chat-completions
+                    }
+                    if (typeof args.temperature === 'number') parameters.temperature = args.temperature;
+                    if (typeof args.topP === 'number') parameters.top_p = args.topP;
+                    if (typeof args.topK === 'number') parameters.top_k = args.topK;
+                    if (Array.isArray(args.stopSequences) && args.stopSequences.length) {
+                        parameters.stop = args.stopSequences;
+                        parameters.stop_sequences = args.stopSequences;
+                    }
+                    if (typeof args.seed === 'number') parameters.seed = args.seed;
+
+                    function pickProvider(cfg) {
+                        var cand = cfg && (cfg.hfProvider || cfg.hfprovider || cfg.inferenceProvider || cfg.inferenceprovider || cfg.huggingfaceProvider || cfg.providerOverride || cfg.providerOption);
+                        if (!cand) return undefined;
+                        return cand;
+                    }
+                    const providerOverride = pickProvider(config);
+
+                    const useChat = !!config.conversational;
+
+                    const controller = new AbortController();
+                    let allText = '';
+                    let aborted = false;
+
+                    (async function run(){
+                        try {
+                            if (useChat && typeof client.chatCompletionStream === 'function') {
+                                // Prefer messages if provided, else wrap the promptText
+                                let messages = Array.isArray(args.messages) && args.messages.length
+                                    ? args.messages
+                                    : (promptText ? [{ role: 'user', content: String(promptText) }] : []);
+
+                                if (!messages.length) {
+                                    callback('No prompt or messages provided for Hugging Face chat completion', null);
+                                    return;
+                                }
+
+                                const req = Object.assign({ model: config.model, messages: messages }, parameters);
+                                if (providerOverride) req.provider = providerOverride;
+
+                                const stream = client.chatCompletionStream(req, { signal: controller.signal });
+                                for await (const evt of stream) {
+                                    // Expect evt.choices[0].delta.content chunks (OpenAI style) or evt.delta
+                                    let part = '';
+                                    if (evt && evt.delta && typeof evt.delta === 'string') part = evt.delta;
+                                    else if (evt && Array.isArray(evt.choices) && evt.choices.length) {
+                                        const delta = evt.choices[0].delta;
+                                        part = (delta && (delta.content || delta.text)) || '';
+                                    }
+                                    if (part) {
+                                        allText += part;
+                                        if (!eventcallback(part, allText)) {
+                                            aborted = true;
+                                            controller.abort();
+                                            break;
+                                        }
+                                    }
+                                }
+                            } else {
+                                // Fallback to text generation streaming
+                                if (!promptText || typeof promptText !== 'string') {
+                                    callback('No prompt text provided for Hugging Face text generation', null);
+                                    return;
+                                }
+                                const request = { model: config.model, inputs: promptText };
+                                if (Object.keys(parameters).length) request.parameters = parameters;
+                                if (providerOverride) request.provider = providerOverride;
+
+                                const stream = client.textGenerationStream(request, { signal: controller.signal });
+                                for await (const evt of stream) {
+                                    if (evt && evt.token && typeof evt.token.text === 'string') {
+                                        const part = evt.token.text;
+                                        allText += part;
+                                        if (!eventcallback(part, allText)) {
+                                            aborted = true;
+                                            controller.abort();
+                                            break;
+                                        }
+                                    }
+                                }
+                            }
+
+                            if (aborted) {
+                                callback(' Stream aborted ', allText);
+                                return;
+                            }
+                            callback(null, allText);
+
+                            // Best-effort tracking (no usage provided by HF streaming)
+                            if (config.trackCallback) {
+                                try {
+                                    var trackingData = {
+                                        config: config,
+                                        psuedo: true,
+                                        inputTokens: Math.ceil(String(promptText || '').split(' ').join('').split('\r\n').join('').length / 4),
+                                        outputTokens: Math.ceil(String(allText).split(' ').join('').split('\r\n').join('').length / 4),
+                                        totalTokens: 0,
+                                        cachedInputTokens: 0,
+                                        reasoningTokens: 0
+                                    };
+                                    trackingData.totalTokens = trackingData.inputTokens + trackingData.outputTokens;
+                                    config.trackCallback(trackingData);
+                                } catch(_e) {}
+                            }
+                        } catch (error) {
+                            if (aborted) {
+                                callback(' Stream aborted ', allText);
+                            } else {
+                                callback(error && error.message ? error.message : String(error), null);
+                            }
+                        }
+                    })();
                 } catch (error) {
-                    callback(error.message, null);
+                    callback(error && error.message ? error.message : String(error), null);
                 }
             }).catch((error) => {
-                callback(error.message, null);
+                callback(error && error.message ? error.message : String(error), null);
             });
         },
         //-------------------------------------------------------------------------------------------

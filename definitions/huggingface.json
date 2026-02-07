@@ -20,6 +20,12 @@
       "description": "Optional inference provider for requests (e.g. auto, hf-inference, replicate, together). If unset, defaults to auto.",
       "optional": true,
       "type": "string"
+    },
+    {
+      "name": "conversational",
+      "description": "When true, use the Chat Completions API (messages-based) instead of plain text generation.",
+      "optional": true,
+      "type": "boolean"
     }
   ],
   "models": [
