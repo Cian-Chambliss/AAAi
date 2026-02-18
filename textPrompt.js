@@ -366,6 +366,54 @@ module.exports = function (config, prompt, callback , extra ) {
             });
         },
         //-------------------------------------------------------------------------------------------
+        // LM Studio (OpenAI-compatible) text prompt driver
+        "lmstudio": function (config, prompt, callback) {
+            import('@ai-sdk/openai-compatible').then((module) => {
+                const createOpenAI = module.createOpenAICompatible;
+                const settings = {
+                    apiKey: config.apikey || "lmstudio"
+                };
+                if (config.baseurl) {
+                    settings.baseURL = config.baseurl;
+                } else {
+                    settings.baseURL = "http://localhost:1234/v1";
+                }
+                if (config.name) {
+                    settings.name = config.name;
+                }
+                if (config.organization) {
+                    settings.organization = config.organization;
+                }
+                if (config.project) {
+                    settings.project = config.project;
+                }
+                if (config.headers) {
+                    settings.headers = config.headers;
+                }
+                try {
+                    const openai = createOpenAI(settings);
+                    import('ai').then((aiModule) => {
+                        const generateText = aiModule.generateText;
+                        args.model = openai(config.model);
+                        if( modelCheck(args,config,callback) ) {
+                            generateText(args).then((result) => {
+                                callback(null, result.text,result);
+                                processResponse(result);
+                            }).catch((error) => {
+                                callback(error.message, null);
+                            });
+                        }
+                    }).catch((error) => {
+                        callback(error.message, null);
+                    });
+                } catch (error) {
+                    callback(error.message, null);
+                }
+            }).catch((error) => {
+                callback(error.message, null);
+            });
+        },
+        //-------------------------------------------------------------------------------------------
         // Hugging Face text or chat driver via @huggingface/inference
         "huggingface": function (config, prompt, callback) {
             import('@huggingface/inference').then((module) => {

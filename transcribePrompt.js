@@ -321,6 +321,54 @@ module.exports = function (config, audio, callback , extra ) {
             });
         },
         //-------------------------------------------------------------------------------------------
+        // LM Studio (OpenAI-compatible) text prompt driver
+        "lmstudio": function (config,  callback) {
+            import('@ai-sdk/openai-compatible').then((module) => {
+                const createOpenAI = module.createOpenAICompatible;
+                const settings = {
+                    apiKey: config.apikey || "lmstudio"
+                };
+                if (config.baseurl) {
+                    settings.baseURL = config.baseurl;
+                } else {
+                    settings.baseURL = "http://localhost:1234/v1";
+                }
+                if (config.name) {
+                    settings.name = config.name;
+                }
+                if (config.organization) {
+                    settings.organization = config.organization;
+                }
+                if (config.project) {
+                    settings.project = config.project;
+                }
+                if (config.headers) {
+                    settings.headers = config.headers;
+                }
+                try {
+                    const openai = createOpenAI(settings);
+                    import('ai').then((aiModule)  => {
+                        const transcribe = aiModule.experimental_transcribe;
+                        args.model = openai.transcription(config.model);
+                        if( modelCheck(args,config,callback) ) {
+                            transcribe(args).then((result) => {
+                                callback(null, result.text);
+                                processResponse(result);
+                            }).catch((error) => {
+                                callback(error.message, null);
+                            });
+                        }
+                    }).catch((error) => {
+                        callback(error.message, null);
+                    });
+                } catch (error) {
+                    callback(error.message, null);
+                }
+            }).catch((error) => {
+                callback(error.message, null);
+            });
+        },
+        //-------------------------------------------------------------------------------------------
         // Hugging Face transcription driver via @huggingface/inference
         "huggingface": function (config, callback) {
             import('@huggingface/inference').then((module) => {

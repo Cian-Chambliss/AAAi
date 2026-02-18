@@ -138,6 +138,73 @@ module.exports = function (config, callback, extra) {
             });
         },
         //-------------------------------------------------------------------------------------------
+        // LM Studio (OpenAI-compatible) model list
+        "lmstudio": function (config, callback, fallback) {
+            var url = config.baseurl;
+            if (!url) {
+                url = "http://localhost:1234/v1";
+            }
+            if (!/\/models\/?$/.test(url)) {
+                if (url.endsWith('/')) {
+                    url += "models";
+                } else {
+                    url += "/models";
+                }
+            }
+            var httpx = null;
+            const urlP = new URL(url);
+            if( urlP.protocol == "https:") {
+                httpx =  require('https');
+            } else {
+                httpx = require('http');
+            }
+            var headers = {
+                'Content-Type': 'application/json'
+            };
+            if (config.apikey) {
+                headers['Authorization'] = `Bearer ${config.apikey}`;
+            }
+            if (config.headers && typeof config.headers === 'object') {
+                Object.keys(config.headers).forEach(function(k){ headers[k] = config.headers[k]; });
+            }
+            var options = {
+                hostname : urlP.hostname,
+                port : urlP.port,
+                path : urlP.pathname,
+                method : "GET",
+                headers: headers
+            };
+            httpx.get(options, (res) => {
+                let data = '';
+                res.on('data', (chunk) => {
+                    data += chunk;
+                });
+                res.on('end', () => {
+                    try {
+                        const obj = JSON.parse(data);
+                        const listed = [];
+                        var models = obj && (obj.data || obj.models || obj.items || obj.result || obj);
+                        if (!Array.isArray(models)) {
+                            models = [];
+                        }
+                        for (var i = 0; i < models.length; ++i) {
+                            var m = models[i] || {};
+                            var id = m.id || m.key || m.name || m.model || m.display_name;
+                            if (id) listed.push(id);
+                        }
+                        if( listed.length )
+                            callback(null, formatReturn("lmstudio", listed, returnDescriptions));
+                        else
+                            fallback("lmstudio",callback, returnDescriptions);
+                    }  catch (error) {
+                        fallback("lmstudio",callback, returnDescriptions);
+                    }
+                });
+            }).on('error', (err) => {
+                fallback("lmstudio",callback, returnDescriptions);
+            });
+        },
+        //-------------------------------------------------------------------------------------------
         // HUGGINGFACE model list via public API
         "huggingface": function (config, callback, fallback) {
             var url = config.baseurl;

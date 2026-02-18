@@ -231,6 +231,58 @@ module.exports = function (config, prompt, callback , extra ) {
             });
         },        
         //-------------------------------------------------------------------------------------------
+        // LM Studio (OpenAI-compatible) text prompt driver
+        "lmstudio": function (config, prompt, callback) {
+            import('@ai-sdk/openai-compatible').then((module) => {
+                const createOpenAI = module.createOpenAICompatible;
+                const settings = {
+                    apiKey: config.apikey || "lmstudio"
+                };
+                if (config.baseurl) {
+                    settings.baseURL = config.baseurl;
+                } else {
+                    settings.baseURL = "http://localhost:1234/v1";
+                }
+                if (config.name) {
+                    settings.name = config.name;
+                }
+                if (config.organization) {
+                    settings.organization = config.organization;
+                }
+                if (config.project) {
+                    settings.project = config.project;
+                }
+                if (config.headers) {
+                    settings.headers = config.headers;
+                }
+                try {
+                    const openai = createOpenAI(settings);
+                    import('ai').then((aiModule) => {
+                        const generateImage = aiModule.experimental_generateImage;
+                        if (typeof openai.image !== 'function') {
+                            callback('LM Studio does not support image generation endpoints', null);
+                            return;
+                        }
+                        args.model = openai.image(config.model);
+                        if( modelCheck(args,config,callback) ) {
+                            generateImage(args).then((result) => {
+                                callback(null, result);
+                                processResponse(result);
+                            }).catch((error) => {
+                                callback(error.message, null);
+                            });
+                        }
+                    }).catch((error) => {
+                        callback(error.message, null);
+                    });
+                } catch (error) {
+                    callback(error.message, null);
+                }
+            }).catch((error) => {
+                callback(error.message, null);
+            });
+        },
+        //-------------------------------------------------------------------------------------------
         // google text prompt driver
         "google": function (config, prompt, callback) {
             import('@ai-sdk/google').then((module) => {

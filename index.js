@@ -16,6 +16,7 @@ module.exports = function () {
                 "ollama",
                 "openai",
                 "openai-compatible",
+                "lmstudio",
                 "google",
                 "google-vertex",
                 "anthropic",

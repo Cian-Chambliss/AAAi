@@ -16,6 +16,11 @@ module.exports = function (provider) {
             return require("./definitions/openai-compatible.json");
         },
         //-------------------------------------------------------------------------------------------
+        // LM Studio (OpenAI-compatible) text prompt driver
+        "lmstudio": function () {
+            return require("./definitions/lmstudio.json");
+        },
+        //-------------------------------------------------------------------------------------------
         // google text prompt driver
         "google": function () {
             return require("./definitions/google.json");
