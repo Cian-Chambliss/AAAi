@@ -3,8 +3,22 @@ module.exports = function (config, prompt, callback , eventcallback , extra ) {
         model: null,
         prompt: prompt,
     };
+    const delay = function(ms) {
+        return new Promise(resolve => setTimeout(resolve,ms));
+    }
     //------------------------------------ Common stream logic
     const streamAllText = function(config,prompt,args,callback,eventcallback) {
+        if( extra ) {
+            if( extra.tools ) {
+                args.tools = extra.tools;
+            }
+            //if( extra.system ) {
+            //    args.system = extra.system;
+            //}
+            if( extra.maxsteps ) {
+                args.maxSteps = extra.maxsteps;
+            }
+        }        
         if( !args.model ) {            
             callback("Model '"+config.model+"' not found.", null);
         } else {
@@ -48,28 +62,115 @@ module.exports = function (config, prompt, callback , eventcallback , extra ) {
                         config.trackCallback( trackingData );
                     };
                 }
-                const streamResult = streamText(args);
+                var streamResult = null;
                 var allText = "";
-                for await (const textPart of streamResult.textStream) {
-                    allText += textPart;
-                    if( !eventcallback(textPart,allText) ) {
-                        controller.abort();
-                        callback(' Stream aborted ',allText);
-                        streamResult.closeStream();
-                        return;
+                if( extra && extra.tools ) {
+                    var origMessages = args.messages;
+                    var messages = args.messages;
+                    var nstep = 1;
+                    if( config.provider != "openai" && args.maxSteps > 1 ) {
+                        nstep = args.maxSteps;
                     }
+                    for( var stepNo = 0 ; stepNo < nstep; ++stepNo ) {
+                        streamResult = streamText(args);
+                        if( stepNo > 0 && config.delay ) {
+                            await delay(config.delay);
+                        }
+                        const toolCalls = await streamResult.toolCalls;
+                        if( toolCalls.length > 0 ) {
+                            for( const call of toolCalls ) {
+                                const toolResult = await extra.tools[call.toolName].execute(call.args || call.input);
+                                //var newMessages = [];
+                                messages.push({
+                                role: "assistant",
+                                content: JSON.stringify(toolResult)
+                                });
+                                //newMessages = ai.convertToModelMessages(newMessages);
+                                
+                                //messages.push(newMessages[0]);
+                            }
+                        } else {
+                            break;
+                        }
+                        args.messages = messages;
+                        //-----------------------------------------------------------
+                        for await (const event of streamResult.fullStream) {
+                            var _eventtext = "";
+                            switch (event.type) {
+                                case "text-delta":
+                                    _eventtext = event.text;
+                                    break;
+                                case "tool-call":
+                                    _eventtext = "\n🔧 TOOL CALL:" + event.toolName;
+                                    if( event.args ) {
+                                        _eventtext += "Args:" + JSON.stringify(event.args);
+                                    }
+                                    if( event.input ) {
+                                        _eventtext += "Args:" + JSON.stringify(event.input);
+                                    }
+                                break;
+
+                                case "tool-result":
+                                    _eventtext = "\n✅ TOOL RESULT:" + event.toolName;
+                                    if( event.result ) {
+                                        _eventtext += JSON.stringify(event.result);
+                                    }
+                                    if( event.output ) {
+                                        _eventtext += JSON.stringify(event.output);
+                                    }
+                                break;
+
+                                case "step-start":
+                                    _eventtext = "\n--- STEP START ---";
+                                    break;
+
+                                case "step-finish":
+                                    _eventtext = "\n--- STEP FINISH ---";
+                                    break;
+                                default:
+                                    _eventtext = "\n"+event.type;
+                                    break;
+                            }
+                            if( _eventtext.length ) {
+                                allText += _eventtext;
+                                if( !eventcallback(_eventtext,allText,event) ) {
+                                    controller.abort();
+                                    callback(' Stream aborted ',allText);
+                                    streamResult.closeStream();
+                                    return;
+                                }
+                            }
+                        }
+                        const streamResponsed = await streamResult.response;
+                        messages.push(origMessages[0]);
+                        messages.push( streamResponsed.messages[0] );
+                    }
+                    callback(null, allText);
+                } else {
+                    streamResult = streamText(args);
+                    for await (const textPart of streamResult.textStream) {
+                        allText += textPart;
+                        if( !eventcallback(textPart,allText) ) {
+                            controller.abort();
+                            callback(' Stream aborted ',allText);
+                            streamResult.closeStream();
+                            return;
+                        }                        
+                    }
+                    var textOutput =  await streamResult.text;
+                    callback(null, textOutput);
                 }
-                callback(null, await streamResult.text);
+                // Note - tools can have steps
             }).catch((error) => {
                 callback(error.message, null);
             });
         }
     };
+    var ai = require('ai');
 
     if( Array.isArray(prompt) ) {
         if(  prompt.length ) {
             if( prompt[0].role ) {
-                var ai = require('ai');
                 args = {
                     model:null,
                     messages: ai.convertToModelMessages(prompt)
@@ -84,6 +185,45 @@ module.exports = function (config, prompt, callback , eventcallback , extra ) {
                 args[keys[i]] = prompt[keys[i]];
             }
         } 
+    }
+    if( extra && extra.tools && !args.messages ) {
+        const keys = Object.keys(args);
+        var messages = [];
+        var userMessage = null;
+        var systemMessage = null;
+        var newArgs = {
+            model: null,
+            messages: null
+        };
+        for( var i = 0 ; i < keys.length ; ++i ) {
+            if( keys[i] == "prompt" ) {
+                userMessage = {
+                    role : "user",
+                    content : args[keys[i]]
+                };
+            } else if( keys[i] == "system" ) {
+                systemMessage = {
+                    role : "system",
+                    content : args[keys[i]]
+                };
+            } else {
+                newArgs[keys[i]] = args[keys[i]];
+            }
+        }
+        if( extra.system && !systemMessage ) {
+            systemMessage = {
+               role : "system",
+               content : extra.system
+            };
+        }        
+        if( systemMessage ) {
+            messages.push(systemMessage);
+        }
+        if( userMessage ) {
+            messages.push(userMessage);
+        }
+        newArgs.messages = messages; //
+        args = newArgs;
     }
     if( extra ) {
         const copyProps = [

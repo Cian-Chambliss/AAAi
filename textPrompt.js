@@ -83,6 +83,12 @@ module.exports = function (config, prompt, callback , extra ) {
             callback("Model '"+config.model+"' not found.", null);
             return false;
         }
+        if( extra && extra.tools ) {
+            args.tools = extra.tools;
+        }
+        if( extra && extra.system ) {
+            args.system = extra.system;
+        }
         return true;
     };
     const handlers = {

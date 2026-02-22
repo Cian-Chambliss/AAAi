@@ -1,3 +1,6 @@
+const { tool } = require("ai");
+const { z } = require("zod");
+
 module.exports = function () {
     const getProviderDefinition = require("./getProviderDefinition"); 
     const getModelDefinition = require("./getModelDefinition");
@@ -40,7 +43,9 @@ module.exports = function () {
         getProviderDefinition: getProviderDefinition,
         getModelDefinition: getModelDefinition,
         makeImageResultSaver: makeImageResultSaver,
-        makeSpeechResultSaver: makeSpeechResultSaver
+        makeSpeechResultSaver: makeSpeechResultSaver,
+        tool: tool,
+        z: z
     };
     return ai;
 };
