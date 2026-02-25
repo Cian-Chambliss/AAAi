@@ -65,34 +65,44 @@ module.exports = function (config, prompt, callback , eventcallback , extra ) {
                 var streamResult = null;
                 var allText = "";
                 if( extra && extra.tools ) {
-                    var origMessages = args.messages;
-                    var messages = args.messages;
+                    var baseMessages = Array.isArray(args.messages) ? args.messages.slice() : [];
+                    var messages = baseMessages.slice();
+                    var handledToolCallIds = new Set();
+                    for( var mi = 0 ; mi < messages.length ; ++mi ) {
+                        var msg = messages[mi];
+                        if( msg && msg.role === "tool" && Array.isArray(msg.content) ) {
+                            for( var ci = 0 ; ci < msg.content.length ; ++ci ) {
+                                var c = msg.content[ci];
+                                if( c && c.type === "tool-result" && c.toolCallId ) {
+                                    handledToolCallIds.add(c.toolCallId);
+                                }
+                            }
+                        }
+                    }
                     var nstep = 1;
                     if( config.provider != "openai" && args.maxSteps > 1 ) {
                         nstep = args.maxSteps;
                     }
                     for( var stepNo = 0 ; stepNo < nstep; ++stepNo ) {
+                        args.messages = messages;
                         streamResult = streamText(args);
                         if( stepNo > 0 && config.delay ) {
                             await delay(config.delay);
                         }
                         const toolCalls = await streamResult.toolCalls;
+                        var toolResults = [];
                         if( toolCalls.length > 0 ) {
                             for( const call of toolCalls ) {
+                                if( call.toolCallId && handledToolCallIds.has(call.toolCallId) ) {
+                                    continue;
+                                }
                                 const toolResult = await extra.tools[call.toolName].execute(call.args || call.input);
-                                //var newMessages = [];
-                                messages.push({
-                                role: "assistant",
-                                content: JSON.stringify(toolResult)
+                                toolResults.push({
+                                    call: call,
+                                    result: toolResult
                                 });
-                                //newMessages = ai.convertToModelMessages(newMessages);
-                                
-                                //messages.push(newMessages[0]);
                             }
-                        } else {
-                            break;
                         }
-                        args.messages = messages;
                         //-----------------------------------------------------------
                         for await (const event of streamResult.fullStream) {
                             var _eventtext = "";
@@ -142,8 +152,32 @@ module.exports = function (config, prompt, callback , eventcallback , extra ) {
                             }
                         }
                         const streamResponsed = await streamResult.response;
-                        messages.push(origMessages[0]);
-                        messages.push( streamResponsed.messages[0] );
+                        if( streamResponsed && Array.isArray(streamResponsed.messages) && streamResponsed.messages.length ) {
+                            messages = messages.concat(streamResponsed.messages);
+                        }
+                        if( toolResults.length > 0 ) {
+                            for( var tr = 0 ; tr < toolResults.length ; ++tr ) {
+                                var call = toolResults[tr].call;
+                                var result = toolResults[tr].result;
+                                if( call.toolCallId ) {
+                                    handledToolCallIds.add(call.toolCallId);
+                                }
+                                messages.push({
+                                    role: "tool",
+                                    content: [{
+                                        type: "tool-result",
+                                        toolCallId: call.toolCallId,
+                                        toolName: call.toolName,
+                                        output: {
+                                            type: "text",
+                                            value: (result === undefined || result === null) ? "" : String(result)
+                                        }
+                                    }]
+                                });
+                            }
+                        } else {
+                            break;
+                        }
                     }
                     callback(null, allText);
                 } else {
