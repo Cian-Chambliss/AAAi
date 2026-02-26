@@ -65,7 +65,49 @@ module.exports = function (config, prompt, callback , eventcallback , extra ) {
                 var streamResult = null;
                 var allText = "";
                 if( extra && extra.tools ) {
-                    var baseMessages = Array.isArray(args.messages) ? args.messages.slice() : [];
+                    const toTextParts = function(content) {
+                        if (content === undefined || content === null) {
+                            return [{ type: "text", text: "" }];
+                        }
+                        if (Array.isArray(content)) {
+                            return content;
+                        }
+                        if (typeof content === "string") {
+                            return [{ type: "text", text: content }];
+                        }
+                        return [{ type: "text", text: JSON.stringify(content) }];
+                    }
+                    const coerceToModelMessages = function(msgs) {
+                        if (!Array.isArray(msgs)) {
+                            return [];
+                        }
+                        if (!msgs.length) {
+                            return [];
+                        }
+                        const hasParts = msgs.some((msg) => msg && Array.isArray(msg.parts));
+                        if (hasParts) {
+                            const uiMessages = msgs.map((msg) => {
+                                if (msg && msg.parts) {
+                                    return msg;
+                                }
+                                return {
+                                    role: msg && msg.role ? msg.role : "user",
+                                    parts: toTextParts(msg ? msg.content : "")
+                                };
+                            });
+                            return ai.convertToModelMessages(uiMessages);
+                        }
+                        return msgs.map((msg) => {
+                            if (!msg || typeof msg !== "object") {
+                                return { role: "user", content: "" };
+                            }
+                            if (msg.content === undefined || msg.content === null) {
+                                return { role: msg.role || "user", content: "" };
+                            }
+                            return msg;
+                        });
+                    }
+                    var baseMessages = coerceToModelMessages(args.messages);
                     var messages = baseMessages.slice();
                     var handledToolCallIds = new Set();
                     for( var mi = 0 ; mi < messages.length ; ++mi ) {
@@ -143,7 +185,8 @@ module.exports = function (config, prompt, callback , eventcallback , extra ) {
                         }
                         const streamResponsed = await streamResult.response;
                         if( streamResponsed && Array.isArray(streamResponsed.messages) && streamResponsed.messages.length ) {
-                            messages = messages.concat(streamResponsed.messages);
+                            const responseMessages = coerceToModelMessages(streamResponsed.messages);
+                            messages = messages.concat(responseMessages);
                         }
                         if( toolResults.length > 0 ) {
                             for( var tr = 0 ; tr < toolResults.length ; ++tr ) {
@@ -241,12 +284,18 @@ module.exports = function (config, prompt, callback , eventcallback , extra ) {
             };
         }        
         if( systemMessage ) {
-            messages.push(systemMessage);
+            messages.push({ role: systemMessage.role, content: systemMessage.content || "" });
         }
         if( userMessage ) {
-            messages.push(userMessage);
+            var userContent = userMessage.content;
+            if (userContent === undefined || userContent === null) {
+                userContent = "";
+            } else if (typeof userContent !== "string" && !Array.isArray(userContent)) {
+                userContent = JSON.stringify(userContent);
+            }
+            messages.push({ role: userMessage.role, content: userContent });
         }
-        newArgs.messages = messages; //
+        newArgs.messages = messages;
         args = newArgs;
     }
     if( extra ) {
@@ -276,6 +325,30 @@ module.exports = function (config, prompt, callback , eventcallback , extra ) {
         }
         //abortSignal - look at implementing
         //Tool Calling - loop at implementing - need some examples 
+    }
+    if (Array.isArray(args.messages) && args.messages.length) {
+        const toTextParts = function(content) {
+            if (content === undefined || content === null) {
+                return [{ type: "text", text: "" }];
+            }
+            if (Array.isArray(content)) {
+                return content;
+            }
+            if (typeof content === "string") {
+                return [{ type: "text", text: content }];
+            }
+            return [{ type: "text", text: JSON.stringify(content) }];
+        }
+        const needsConversion = args.messages.some((msg) => msg && msg.role && msg.parts);
+        if (needsConversion) {
+            const uiMessages = args.messages.map((msg) => {
+                if (msg && msg.parts) {
+                    return msg;
+                }
+                return { role: msg && msg.role ? msg.role : "user", parts: toTextParts(msg ? msg.content : "") };
+            });
+            args.messages = ai.convertToModelMessages(uiMessages);
+        }
     }
     const handlers = {
         //-------------------------------------------------------------------------------------------
