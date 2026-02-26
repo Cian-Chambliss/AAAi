@@ -77,37 +77,176 @@ module.exports = function (config, prompt, callback , eventcallback , extra ) {
                         }
                         return [{ type: "text", text: JSON.stringify(content) }];
                     }
-                    const coerceToModelMessages = function(msgs) {
+                    const normalizeAssistantPart = function(part) {
+                        if (!part || typeof part !== "object") {
+                            return null;
+                        }
+                        if (part.type === "text") {
+                            return { type: "text", text: String(part.text || part.value || "") };
+                        }
+                        if (part.type === "reasoning") {
+                            return { type: "reasoning", text: String(part.text || "") };
+                        }
+                        if (part.type === "tool-call") {
+                            if (!part.toolCallId || !part.toolName) {
+                                return null;
+                            }
+                            return { type: "tool-call", toolCallId: part.toolCallId, toolName: part.toolName, input: part.input !== undefined ? part.input : {} };
+                        }
+                        if (part.type === "tool-result") {
+                            if (!part.toolCallId || !part.toolName) {
+                                return null;
+                            }
+                            return { type: "tool-result", toolCallId: part.toolCallId, toolName: part.toolName, output: part.output || { type: "text", value: "" } };
+                        }
+                        if (part.type === "file") {
+                            if (!part.data || !part.mediaType) {
+                                return null;
+                            }
+                            return { type: "file", data: part.data, mediaType: part.mediaType, filename: part.filename };
+                        }
+                        if (part.type === "image") {
+                            if (!part.image) {
+                                return null;
+                            }
+                            return { type: "image", image: part.image };
+                        }
+                        return null;
+                    }
+                    const normalizeUserPart = function(part) {
+                        if (!part || typeof part !== "object") {
+                            return null;
+                        }
+                        if (part.type === "text") {
+                            return { type: "text", text: String(part.text || part.value || "") };
+                        }
+                        if (part.type === "file") {
+                            if (!part.data || !part.mediaType) {
+                                return null;
+                            }
+                            return { type: "file", data: part.data, mediaType: part.mediaType, filename: part.filename };
+                        }
+                        if (part.type === "image") {
+                            if (!part.image) {
+                                return null;
+                            }
+                            return { type: "image", image: part.image };
+                        }
+                        return null;
+                    }
+                    const normalizeToolPart = function(part) {
+                        if (!part || typeof part !== "object") {
+                            return null;
+                        }
+                        if (part.type !== "tool-result") {
+                            return null;
+                        }
+                        if (!part.toolCallId || !part.toolName) {
+                            return null;
+                        }
+                        return { type: "tool-result", toolCallId: part.toolCallId, toolName: part.toolName, output: part.output || { type: "text", value: "" } };
+                    }
+                    const normalizeUiMessagesToModel = function(msgs) {
                         if (!Array.isArray(msgs)) {
                             return [];
-                        }
-                        if (!msgs.length) {
-                            return [];
-                        }
-                        const hasParts = msgs.some((msg) => msg && Array.isArray(msg.parts));
-                        if (hasParts) {
-                            const uiMessages = msgs.map((msg) => {
-                                if (msg && msg.parts) {
-                                    return msg;
-                                }
-                                return {
-                                    role: msg && msg.role ? msg.role : "user",
-                                    parts: toTextParts(msg ? msg.content : "")
-                                };
-                            });
-                            return ai.convertToModelMessages(uiMessages);
                         }
                         return msgs.map((msg) => {
                             if (!msg || typeof msg !== "object") {
                                 return { role: "user", content: "" };
                             }
-                            if (msg.content === undefined || msg.content === null) {
-                                return { role: msg.role || "user", content: "" };
+                            const role = msg.role || "user";
+                            const parts = Array.isArray(msg.parts) ? msg.parts : [];
+                            if (role === "system") {
+                                const text = parts.filter((p) => p.type === "text" && p.text !== undefined).map((p) => p.text).join("");
+                                return { role: "system", content: text };
                             }
-                            return msg;
+                            if (role === "user") {
+                                const contentParts = parts.map(normalizeUserPart).filter(Boolean);
+                                if (!contentParts.length) {
+                                    return { role: "user", content: "" };
+                                }
+                                return { role: "user", content: contentParts };
+                            }
+                            if (role === "assistant") {
+                                const contentParts = parts.map(normalizeAssistantPart).filter(Boolean);
+                                if (!contentParts.length) {
+                                    return { role: "assistant", content: "" };
+                                }
+                                return { role: "assistant", content: contentParts };
+                            }
+                            if (role === "tool") {
+                                const contentParts = parts.map(normalizeToolPart).filter(Boolean);
+                                return { role: "tool", content: contentParts };
+                            }
+                            return { role: "user", content: "" };
                         });
                     }
-                    var baseMessages = coerceToModelMessages(args.messages);
+                    const normalizeModelMessages = function(msgs) {
+                        if (!Array.isArray(msgs)) {
+                            return [];
+                        }
+                        return msgs.map((msg) => {
+                            if (!msg || typeof msg !== "object") {
+                                return { role: "user", content: "" };
+                            }
+                            const role = msg.role || "user";
+                            if (role === "system") {
+                                var content = msg.content;
+                                if (Array.isArray(content)) {
+                                    content = content.map((p) => p.text || p.value || "").join("");
+                                }
+                                if (content === undefined || content === null) {
+                                    content = "";
+                                }
+                                return { role: "system", content: String(content) };
+                            }
+                            if (role === "user") {
+                                var ucontent = msg.content;
+                                if (Array.isArray(ucontent)) {
+                                    const parts = ucontent.map(normalizeUserPart).filter(Boolean);
+                                    if (!parts.length) {
+                                        return { role: "user", content: "" };
+                                    }
+                                    return { role: "user", content: parts };
+                                }
+                                if (ucontent === undefined || ucontent === null) {
+                                    ucontent = "";
+                                }
+                                return { role: "user", content: String(ucontent) };
+                            }
+                            if (role === "assistant") {
+                                var acontent = msg.content;
+                                if (Array.isArray(acontent)) {
+                                    const parts = acontent.map(normalizeAssistantPart).filter(Boolean);
+                                    if (!parts.length) {
+                                        return { role: "assistant", content: "" };
+                                    }
+                                    return { role: "assistant", content: parts };
+                                }
+                                if (acontent === undefined || acontent === null) {
+                                    acontent = "";
+                                }
+                                return { role: "assistant", content: String(acontent) };
+                            }
+                            if (role === "tool") {
+                                var tcontent = msg.content;
+                                if (!Array.isArray(tcontent)) {
+                                    tcontent = [];
+                                }
+                                const parts = tcontent.map(normalizeToolPart).filter(Boolean);
+                                return { role: "tool", content: parts };
+                            }
+                            return { role: "user", content: "" };
+                        });
+                    }
+                    const normalizeMessages = function(msgs) {
+                        const hasParts = Array.isArray(msgs) && msgs.some((msg) => msg && Array.isArray(msg.parts));
+                        if (hasParts) {
+                            return normalizeUiMessagesToModel(msgs);
+                        }
+                        return normalizeModelMessages(msgs);
+                    }
+                    var baseMessages = normalizeMessages(args.messages);
                     var messages = baseMessages.slice();
                     var handledToolCallIds = new Set();
                     for( var mi = 0 ; mi < messages.length ; ++mi ) {
@@ -126,7 +265,7 @@ module.exports = function (config, prompt, callback , eventcallback , extra ) {
                         nstep = args.maxSteps;
                     }
                     for( var stepNo = 0 ; stepNo < nstep; ++stepNo ) {
-                        args.messages = messages;
+                        args.messages = normalizeMessages(messages);
                         streamResult = streamText(args);
                         if( stepNo > 0 && config.delay ) {
                             await delay(config.delay);
@@ -185,7 +324,7 @@ module.exports = function (config, prompt, callback , eventcallback , extra ) {
                         }
                         const streamResponsed = await streamResult.response;
                         if( streamResponsed && Array.isArray(streamResponsed.messages) && streamResponsed.messages.length ) {
-                            const responseMessages = coerceToModelMessages(streamResponsed.messages);
+                            const responseMessages = normalizeMessages(streamResponsed.messages);
                             messages = messages.concat(responseMessages);
                         }
                         if( toolResults.length > 0 ) {
