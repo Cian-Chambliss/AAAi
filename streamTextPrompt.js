@@ -44,7 +44,7 @@ module.exports = function (config, prompt, callback , eventcallback , extra ) {
                         // Other types of tokens to track...
                         if( response.totalUsage ) {
                             if( response.totalUsage.cachedInputTokens ) {
-                            trackingData.cachedInputTokens = response.totalUsage.cachedInputTokens;
+                                trackingData.cachedInputTokens = response.totalUsage.cachedInputTokens;
                             }
                             if( response.totalUsage.reasoningTokens ) {
                                 trackingData.reasoningTokens = response.totalUsage.reasoningTokens;
@@ -107,42 +107,32 @@ module.exports = function (config, prompt, callback , eventcallback , extra ) {
                         for await (const event of streamResult.fullStream) {
                             var _eventtext = "";
                             switch (event.type) {
-                                case "text-delta":
-                                    _eventtext = event.text;
-                                    break;
                                 case "tool-call":
-                                    _eventtext = "\n🔧 TOOL CALL:" + event.toolName;
+                                    _eventtext = "TOOL CALL:" + event.toolName;
                                     if( event.args ) {
                                         _eventtext += "Args:" + JSON.stringify(event.args);
                                     }
                                     if( event.input ) {
                                         _eventtext += "Args:" + JSON.stringify(event.input);
                                     }
-                                break;
+                                    allText += _eventtext+"\r\n";
+                                    break;
 
                                 case "tool-result":
-                                    _eventtext = "\n✅ TOOL RESULT:" + event.toolName;
+                                    _eventtext = "TOOL RESULT:" + event.toolName;
                                     if( event.result ) {
                                         _eventtext += JSON.stringify(event.result);
                                     }
                                     if( event.output ) {
                                         _eventtext += JSON.stringify(event.output);
                                     }
-                                break;
-
-                                case "step-start":
-                                    _eventtext = "\n--- STEP START ---";
-                                    break;
-
-                                case "step-finish":
-                                    _eventtext = "\n--- STEP FINISH ---";
+                                    allText += _eventtext+"\r\n";
                                     break;
                                 default:
-                                    _eventtext = "\n"+event.type;
+                                    _eventtext = event.type;
                                     break;
                             }
                             if( _eventtext.length ) {
-                                allText += _eventtext;
                                 if( !eventcallback(_eventtext,allText,event) ) {
                                     controller.abort();
                                     callback(' Stream aborted ',allText);
