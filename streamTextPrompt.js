@@ -77,6 +77,18 @@ module.exports = function (config, prompt, callback , eventcallback , extra ) {
                         }
                         return [{ type: "text", text: JSON.stringify(content) }];
                     }
+                    const normalizeToolOutput = function(output) {
+                        if (output && typeof output === "object" && output.type) {
+                            return output;
+                        }
+                        if (output === undefined || output === null) {
+                            return { type: "text", value: "" };
+                        }
+                        if (typeof output === "string" || typeof output === "number" || typeof output === "boolean") {
+                            return { type: "text", value: String(output) };
+                        }
+                        return { type: "json", value: output };
+                    }
                     const normalizeAssistantPart = function(part) {
                         if (!part || typeof part !== "object") {
                             return null;
@@ -97,7 +109,7 @@ module.exports = function (config, prompt, callback , eventcallback , extra ) {
                             if (!part.toolCallId || !part.toolName) {
                                 return null;
                             }
-                            return { type: "tool-result", toolCallId: part.toolCallId, toolName: part.toolName, output: part.output || { type: "text", value: "" } };
+                            return { type: "tool-result", toolCallId: part.toolCallId, toolName: part.toolName, output: normalizeToolOutput(part.output) };
                         }
                         if (part.type === "file") {
                             if (!part.data || !part.mediaType) {
@@ -144,7 +156,7 @@ module.exports = function (config, prompt, callback , eventcallback , extra ) {
                         if (!part.toolCallId || !part.toolName) {
                             return null;
                         }
-                        return { type: "tool-result", toolCallId: part.toolCallId, toolName: part.toolName, output: part.output || { type: "text", value: "" } };
+                        return { type: "tool-result", toolCallId: part.toolCallId, toolName: part.toolName, output: normalizeToolOutput(part.output) };
                     }
                     const normalizeUiMessagesToModel = function(msgs) {
                         if (!Array.isArray(msgs)) {
