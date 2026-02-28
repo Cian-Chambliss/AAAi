@@ -300,6 +300,12 @@ module.exports = function (config, prompt, callback , eventcallback , extra ) {
                         for await (const event of streamResult.fullStream) {
                             var _eventtext = "";
                             switch (event.type) {
+                                case "text-delta":
+                                    _eventtext = event.text || "";
+                                    break;
+                                case "reasoning-delta":
+                                    _eventtext = event.text || "";
+                                    break;
                                 case "tool-call":
                                     _eventtext = "TOOL CALL:" + event.toolName;
                                     if( event.args ) {
@@ -326,6 +332,9 @@ module.exports = function (config, prompt, callback , eventcallback , extra ) {
                                     break;
                             }
                             if( _eventtext.length ) {
+                                if (event.type === "text-delta" || event.type === "reasoning-delta") {
+                                    allText += _eventtext;
+                                }
                                 if( !eventcallback(_eventtext,allText,event) ) {
                                     controller.abort();
                                     callback(' Stream aborted ',allText);
@@ -334,10 +343,39 @@ module.exports = function (config, prompt, callback , eventcallback , extra ) {
                                 }
                             }
                         }
+                        var stepText = "";
+                        try {
+                            stepText = await streamResult.text;
+                        } catch (e) {
+                            stepText = "";
+                        }
+                        if (stepText && stepText.length) {
+                            allText += stepText;
+                        }
                         const streamResponsed = await streamResult.response;
                         if( streamResponsed && Array.isArray(streamResponsed.messages) && streamResponsed.messages.length ) {
                             const responseMessages = normalizeMessages(streamResponsed.messages);
                             messages = messages.concat(responseMessages);
+                            for (var rm = responseMessages.length - 1; rm >= 0; rm -= 1) {
+                                var msg = responseMessages[rm];
+                                if (msg && msg.role === "assistant") {
+                                    if (typeof msg.content === "string") {
+                                        allText += msg.content;
+                                    } else if (Array.isArray(msg.content)) {
+                                        var textOut = "";
+                                        for (var pc = 0; pc < msg.content.length; pc += 1) {
+                                            var part = msg.content[pc];
+                                            if (part && part.type === "text" && part.text) {
+                                                textOut += part.text;
+                                            }
+                                        }
+                                        if (textOut.length) {
+                                            allText += textOut;
+                                        }
+                                    }
+                                    break;
+                                }
+                            }
                         }
                         if( toolResults.length > 0 ) {
                             for( var tr = 0 ; tr < toolResults.length ; ++tr ) {
@@ -353,8 +391,8 @@ module.exports = function (config, prompt, callback , eventcallback , extra ) {
                                         toolCallId: call.toolCallId,
                                         toolName: call.toolName,
                                         output: {
-                                            type: "text",
-                                            value: (result === undefined || result === null) ? "" : String(result)
+                                            type: (result !== null && typeof result === "object") ? "json" : "text",
+                                            value: (result === undefined || result === null) ? "" : (result !== null && typeof result === "object" ? result : String(result))
                                         }
                                     }]
                                 });
