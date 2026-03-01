@@ -276,19 +276,20 @@ module.exports = function (config, prompt, callback , eventcallback , extra ) {
                     if( config.provider != "openai" && args.maxSteps > 1 ) {
                         nstep = args.maxSteps;
                     }
-                    for( var stepNo = 0 ; stepNo < nstep; ++stepNo ) {
-                        args.messages = normalizeMessages(messages);
-                        streamResult = streamText(args);
-                        if( stepNo > 0 && config.delay ) {
-                            await delay(config.delay);
-                        }
-                        const toolCalls = await streamResult.toolCalls;
-                        var toolResults = [];
-                        if( toolCalls.length > 0 ) {
-                            for( const call of toolCalls ) {
-                                if( call.toolCallId && handledToolCallIds.has(call.toolCallId) ) {
-                                    continue;
-                                }
+                        for( var stepNo = 0 ; stepNo < nstep; ++stepNo ) {
+                            args.messages = normalizeMessages(messages);
+                            streamResult = streamText(args);
+                            if( stepNo > 0 && config.delay ) {
+                                await delay(config.delay);
+                            }
+                            const toolCalls = await streamResult.toolCalls;
+                            var toolResults = [];
+                            var didTextDelta = false;
+                            if( toolCalls.length > 0 ) {
+                                for( const call of toolCalls ) {
+                                    if( call.toolCallId && handledToolCallIds.has(call.toolCallId) ) {
+                                        continue;
+                                    }
                                 const toolResult = await extra.tools[call.toolName].execute(call.args || call.input);
                                 toolResults.push({
                                     call: call,
@@ -298,84 +299,65 @@ module.exports = function (config, prompt, callback , eventcallback , extra ) {
                         }
                         //-----------------------------------------------------------
                         for await (const event of streamResult.fullStream) {
-                            var _eventtext = "";
-                            switch (event.type) {
-                                case "text-delta":
-                                    _eventtext = event.text || "";
-                                    break;
-                                case "reasoning-delta":
-                                    _eventtext = event.text || "";
-                                    break;
-                                case "tool-call":
-                                    _eventtext = "TOOL CALL:" + event.toolName;
-                                    if( event.args ) {
-                                        _eventtext += "Args:" + JSON.stringify(event.args);
-                                    }
-                                    if( event.input ) {
-                                        _eventtext += "Args:" + JSON.stringify(event.input);
-                                    }
-                                    allText += _eventtext+"\r\n";
-                                    break;
+                                var _eventtext = "";
+                                switch (event.type) {
+                                    case "text-delta":
+                                        _eventtext = event.text || "";
+                                        if( _eventtext.length ) {
+                                            allText += _eventtext;
+                                            didTextDelta = true;
+                                        }
+                                        break;
+                                    case "reasoning-delta":
+                                        _eventtext = event.text || "";
+                                        break;
+                                    case "tool-call":
+                                        _eventtext = "TOOL CALL:" + event.toolName;
+                                        if( event.args ) {
+                                            _eventtext += "Args:" + JSON.stringify(event.args);
+                                        }
+                                        if( event.input ) {
+                                            _eventtext += "Args:" + JSON.stringify(event.input);
+                                        }
+                                        break;
 
-                                case "tool-result":
-                                    _eventtext = "TOOL RESULT:" + event.toolName;
-                                    if( event.result ) {
-                                        _eventtext += JSON.stringify(event.result);
-                                    }
-                                    if( event.output ) {
-                                        _eventtext += JSON.stringify(event.output);
-                                    }
-                                    allText += _eventtext+"\r\n";
-                                    break;
-                                default:
-                                    _eventtext = event.type;
-                                    break;
-                            }
-                            if( _eventtext.length ) {
-                                if (event.type === "text-delta" || event.type === "reasoning-delta") {
-                                    allText += _eventtext;
+                                    case "tool-result":
+                                        _eventtext = "TOOL RESULT:" + event.toolName;
+                                        if( event.result ) {
+                                            _eventtext += JSON.stringify(event.result);
+                                        }
+                                        if( event.output ) {
+                                            _eventtext += JSON.stringify(event.output);
+                                        }
+                                        break;
+                                    default:
+                                        _eventtext = event.type;
+                                        break;
                                 }
-                                if( !eventcallback(_eventtext,allText,event) ) {
-                                    controller.abort();
-                                    callback(' Stream aborted ',allText);
-                                    streamResult.closeStream();
-                                    return;
+                                if( _eventtext.length ) {
+                                    if( !eventcallback(_eventtext,allText,event) ) {
+                                        controller.abort();
+                                        callback(' Stream aborted ',allText);
+                                        streamResult.closeStream();
+                                        return;
                                 }
                             }
                         }
-                        var stepText = "";
-                        try {
-                            stepText = await streamResult.text;
-                        } catch (e) {
-                            stepText = "";
-                        }
-                        if (stepText && stepText.length) {
-                            allText += stepText;
+                        if( !didTextDelta ) {
+                            var stepText = "";
+                            try {
+                                stepText = await streamResult.text;
+                            } catch (e) {
+                                stepText = "";
+                            }
+                            if (stepText && stepText.length) {
+                                allText += stepText;
+                            }
                         }
                         const streamResponsed = await streamResult.response;
                         if( streamResponsed && Array.isArray(streamResponsed.messages) && streamResponsed.messages.length ) {
                             const responseMessages = normalizeMessages(streamResponsed.messages);
                             messages = messages.concat(responseMessages);
-                            for (var rm = responseMessages.length - 1; rm >= 0; rm -= 1) {
-                                var msg = responseMessages[rm];
-                                if (msg && msg.role === "assistant") {
-                                    if (typeof msg.content === "string") {
-                                        allText += msg.content;
-                                    } else if (Array.isArray(msg.content)) {
-                                        var textOut = "";
-                                        for (var pc = 0; pc < msg.content.length; pc += 1) {
-                                            var part = msg.content[pc];
-                                            if (part && part.type === "text" && part.text) {
-                                                textOut += part.text;
-                                            }
-                                        }
-                                        if (textOut.length) {
-                                            allText += textOut;
-                                        }
-                                    }
-                                    break;
-                                }
-                            }
                         }
                         if( toolResults.length > 0 ) {
                             for( var tr = 0 ; tr < toolResults.length ; ++tr ) {
