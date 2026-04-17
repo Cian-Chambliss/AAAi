@@ -65,200 +65,7 @@ module.exports = function (config, prompt, callback , eventcallback , extra ) {
                 var streamResult = null;
                 var allText = "";
                 if( extra && extra.tools ) {
-                    const toTextParts = function(content) {
-                        if (content === undefined || content === null) {
-                            return [{ type: "text", text: "" }];
-                        }
-                        if (Array.isArray(content)) {
-                            return content;
-                        }
-                        if (typeof content === "string") {
-                            return [{ type: "text", text: content }];
-                        }
-                        return [{ type: "text", text: JSON.stringify(content) }];
-                    }
-                    const normalizeToolOutput = function(output) {
-                        if (output && typeof output === "object" && output.type) {
-                            return output;
-                        }
-                        if (output === undefined || output === null) {
-                            return { type: "text", value: "" };
-                        }
-                        if (typeof output === "string" || typeof output === "number" || typeof output === "boolean") {
-                            return { type: "text", value: String(output) };
-                        }
-                        return { type: "json", value: output };
-                    }
-                    const normalizeAssistantPart = function(part) {
-                        if (!part || typeof part !== "object") {
-                            return null;
-                        }
-                        if (part.type === "text") {
-                            return { type: "text", text: String(part.text || part.value || "") };
-                        }
-                        if (part.type === "reasoning") {
-                            return { type: "reasoning", text: String(part.text || "") };
-                        }
-                        if (part.type === "tool-call") {
-                            if (!part.toolCallId || !part.toolName) {
-                                return null;
-                            }
-                            return { type: "tool-call", toolCallId: part.toolCallId, toolName: part.toolName, input: part.input !== undefined ? part.input : {} };
-                        }
-                        if (part.type === "tool-result") {
-                            if (!part.toolCallId || !part.toolName) {
-                                return null;
-                            }
-                            return { type: "tool-result", toolCallId: part.toolCallId, toolName: part.toolName, output: normalizeToolOutput(part.output) };
-                        }
-                        if (part.type === "file") {
-                            if (!part.data || !part.mediaType) {
-                                return null;
-                            }
-                            return { type: "file", data: part.data, mediaType: part.mediaType, filename: part.filename };
-                        }
-                        if (part.type === "image") {
-                            if (!part.image) {
-                                return null;
-                            }
-                            return { type: "image", image: part.image };
-                        }
-                        return null;
-                    }
-                    const normalizeUserPart = function(part) {
-                        if (!part || typeof part !== "object") {
-                            return null;
-                        }
-                        if (part.type === "text") {
-                            return { type: "text", text: String(part.text || part.value || "") };
-                        }
-                        if (part.type === "file") {
-                            if (!part.data || !part.mediaType) {
-                                return null;
-                            }
-                            return { type: "file", data: part.data, mediaType: part.mediaType, filename: part.filename };
-                        }
-                        if (part.type === "image") {
-                            if (!part.image) {
-                                return null;
-                            }
-                            return { type: "image", image: part.image };
-                        }
-                        return null;
-                    }
-                    const normalizeToolPart = function(part) {
-                        if (!part || typeof part !== "object") {
-                            return null;
-                        }
-                        if (part.type !== "tool-result") {
-                            return null;
-                        }
-                        if (!part.toolCallId || !part.toolName) {
-                            return null;
-                        }
-                        return { type: "tool-result", toolCallId: part.toolCallId, toolName: part.toolName, output: normalizeToolOutput(part.output) };
-                    }
-                    const normalizeUiMessagesToModel = function(msgs) {
-                        if (!Array.isArray(msgs)) {
-                            return [];
-                        }
-                        return msgs.map((msg) => {
-                            if (!msg || typeof msg !== "object") {
-                                return { role: "user", content: "" };
-                            }
-                            const role = msg.role || "user";
-                            const parts = Array.isArray(msg.parts) ? msg.parts : [];
-                            if (role === "system") {
-                                const text = parts.filter((p) => p.type === "text" && p.text !== undefined).map((p) => p.text).join("");
-                                return { role: "system", content: text };
-                            }
-                            if (role === "user") {
-                                const contentParts = parts.map(normalizeUserPart).filter(Boolean);
-                                if (!contentParts.length) {
-                                    return { role: "user", content: "" };
-                                }
-                                return { role: "user", content: contentParts };
-                            }
-                            if (role === "assistant") {
-                                const contentParts = parts.map(normalizeAssistantPart).filter(Boolean);
-                                if (!contentParts.length) {
-                                    return { role: "assistant", content: "" };
-                                }
-                                return { role: "assistant", content: contentParts };
-                            }
-                            if (role === "tool") {
-                                const contentParts = parts.map(normalizeToolPart).filter(Boolean);
-                                return { role: "tool", content: contentParts };
-                            }
-                            return { role: "user", content: "" };
-                        });
-                    }
-                    const normalizeModelMessages = function(msgs) {
-                        if (!Array.isArray(msgs)) {
-                            return [];
-                        }
-                        return msgs.map((msg) => {
-                            if (!msg || typeof msg !== "object") {
-                                return { role: "user", content: "" };
-                            }
-                            const role = msg.role || "user";
-                            if (role === "system") {
-                                var content = msg.content;
-                                if (Array.isArray(content)) {
-                                    content = content.map((p) => p.text || p.value || "").join("");
-                                }
-                                if (content === undefined || content === null) {
-                                    content = "";
-                                }
-                                return { role: "system", content: String(content) };
-                            }
-                            if (role === "user") {
-                                var ucontent = msg.content;
-                                if (Array.isArray(ucontent)) {
-                                    const parts = ucontent.map(normalizeUserPart).filter(Boolean);
-                                    if (!parts.length) {
-                                        return { role: "user", content: "" };
-                                    }
-                                    return { role: "user", content: parts };
-                                }
-                                if (ucontent === undefined || ucontent === null) {
-                                    ucontent = "";
-                                }
-                                return { role: "user", content: String(ucontent) };
-                            }
-                            if (role === "assistant") {
-                                var acontent = msg.content;
-                                if (Array.isArray(acontent)) {
-                                    const parts = acontent.map(normalizeAssistantPart).filter(Boolean);
-                                    if (!parts.length) {
-                                        return { role: "assistant", content: "" };
-                                    }
-                                    return { role: "assistant", content: parts };
-                                }
-                                if (acontent === undefined || acontent === null) {
-                                    acontent = "";
-                                }
-                                return { role: "assistant", content: String(acontent) };
-                            }
-                            if (role === "tool") {
-                                var tcontent = msg.content;
-                                if (!Array.isArray(tcontent)) {
-                                    tcontent = [];
-                                }
-                                const parts = tcontent.map(normalizeToolPart).filter(Boolean);
-                                return { role: "tool", content: parts };
-                            }
-                            return { role: "user", content: "" };
-                        });
-                    }
-                    const normalizeMessages = function(msgs) {
-                        const hasParts = Array.isArray(msgs) && msgs.some((msg) => msg && Array.isArray(msg.parts));
-                        if (hasParts) {
-                            return normalizeUiMessagesToModel(msgs);
-                        }
-                        return normalizeModelMessages(msgs);
-                    }
-                    var baseMessages = normalizeMessages(args.messages);
+                    var baseMessages = Array.isArray(args.messages) ? args.messages.slice() : [];
                     var messages = baseMessages.slice();
                     var handledToolCallIds = new Set();
                     for( var mi = 0 ; mi < messages.length ; ++mi ) {
@@ -276,20 +83,19 @@ module.exports = function (config, prompt, callback , eventcallback , extra ) {
                     if( config.provider != "openai" && args.maxSteps > 1 ) {
                         nstep = args.maxSteps;
                     }
-                        for( var stepNo = 0 ; stepNo < nstep; ++stepNo ) {
-                            args.messages = normalizeMessages(messages);
-                            streamResult = streamText(args);
-                            if( stepNo > 0 && config.delay ) {
-                                await delay(config.delay);
-                            }
-                            const toolCalls = await streamResult.toolCalls;
-                            var toolResults = [];
-                            var didTextDelta = false;
-                            if( toolCalls.length > 0 ) {
-                                for( const call of toolCalls ) {
-                                    if( call.toolCallId && handledToolCallIds.has(call.toolCallId) ) {
-                                        continue;
-                                    }
+                    for( var stepNo = 0 ; stepNo < nstep; ++stepNo ) {
+                        args.messages = messages;
+                        streamResult = streamText(args);
+                        if( stepNo > 0 && config.delay ) {
+                            await delay(config.delay);
+                        }
+                        const toolCalls = await streamResult.toolCalls;
+                        var toolResults = [];
+                        if( toolCalls.length > 0 ) {
+                            for( const call of toolCalls ) {
+                                if( call.toolCallId && handledToolCallIds.has(call.toolCallId) ) {
+                                    continue;
+                                }
                                 const toolResult = await extra.tools[call.toolName].execute(call.args || call.input);
                                 toolResults.push({
                                     call: call,
@@ -299,65 +105,45 @@ module.exports = function (config, prompt, callback , eventcallback , extra ) {
                         }
                         //-----------------------------------------------------------
                         for await (const event of streamResult.fullStream) {
-                                var _eventtext = "";
-                                switch (event.type) {
-                                    case "text-delta":
-                                        _eventtext = event.text || "";
-                                        if( _eventtext.length ) {
-                                            allText += _eventtext;
-                                            didTextDelta = true;
-                                        }
-                                        break;
-                                    case "reasoning-delta":
-                                        _eventtext = event.text || "";
-                                        break;
-                                    case "tool-call":
-                                        _eventtext = "TOOL CALL:" + event.toolName;
-                                        if( event.args ) {
-                                            _eventtext += "Args:" + JSON.stringify(event.args);
-                                        }
-                                        if( event.input ) {
-                                            _eventtext += "Args:" + JSON.stringify(event.input);
-                                        }
-                                        break;
+                            var _eventtext = "";
+                            switch (event.type) {
+                                case "tool-call":
+                                    _eventtext = "TOOL CALL:" + event.toolName;
+                                    if( event.args ) {
+                                        _eventtext += "Args:" + JSON.stringify(event.args);
+                                    }
+                                    if( event.input ) {
+                                        _eventtext += "Args:" + JSON.stringify(event.input);
+                                    }
+                                    allText += _eventtext+"\r\n";
+                                    break;
 
-                                    case "tool-result":
-                                        _eventtext = "TOOL RESULT:" + event.toolName;
-                                        if( event.result ) {
-                                            _eventtext += JSON.stringify(event.result);
-                                        }
-                                        if( event.output ) {
-                                            _eventtext += JSON.stringify(event.output);
-                                        }
-                                        break;
-                                    default:
-                                        _eventtext = event.type;
-                                        break;
-                                }
-                                if( _eventtext.length ) {
-                                    if( !eventcallback(_eventtext,allText,event) ) {
-                                        controller.abort();
-                                        callback(' Stream aborted ',allText);
-                                        streamResult.closeStream();
-                                        return;
-                                }
+                                case "tool-result":
+                                    _eventtext = "TOOL RESULT:" + event.toolName;
+                                    if( event.result ) {
+                                        _eventtext += JSON.stringify(event.result);
+                                    }
+                                    if( event.output ) {
+                                        _eventtext += JSON.stringify(event.output);
+                                    }
+                                    allText += _eventtext+"\r\n";
+                                    break;
+                                default:
+                                    _eventtext = event.type;
+                                    break;
                             }
-                        }
-                        if( !didTextDelta ) {
-                            var stepText = "";
-                            try {
-                                stepText = await streamResult.text;
-                            } catch (e) {
-                                stepText = "";
-                            }
-                            if (stepText && stepText.length) {
-                                allText += stepText;
+                            if( _eventtext.length ) {
+                                if( !eventcallback(_eventtext,allText,event) ) {
+                                    controller.abort();
+                                    callback(' Stream aborted ',allText);
+                                    streamResult.closeStream();
+                                    return;
+                                }
                             }
                         }
                         const streamResponsed = await streamResult.response;
                         if( streamResponsed && Array.isArray(streamResponsed.messages) && streamResponsed.messages.length ) {
-                            const responseMessages = normalizeMessages(streamResponsed.messages);
-                            messages = messages.concat(responseMessages);
+                            messages = messages.concat(streamResponsed.messages);
                         }
                         if( toolResults.length > 0 ) {
                             for( var tr = 0 ; tr < toolResults.length ; ++tr ) {
@@ -373,8 +159,8 @@ module.exports = function (config, prompt, callback , eventcallback , extra ) {
                                         toolCallId: call.toolCallId,
                                         toolName: call.toolName,
                                         output: {
-                                            type: (result !== null && typeof result === "object") ? "json" : "text",
-                                            value: (result === undefined || result === null) ? "" : (result !== null && typeof result === "object" ? result : String(result))
+                                            type: "text",
+                                            value: (result === undefined || result === null) ? "" : String(result)
                                         }
                                     }]
                                 });
@@ -404,14 +190,12 @@ module.exports = function (config, prompt, callback , eventcallback , extra ) {
             });
         }
     };
-    var ai = require('ai');
-
     if( Array.isArray(prompt) ) {
         if(  prompt.length ) {
             if( prompt[0].role ) {
                 args = {
                     model:null,
-                    messages: ai.convertToModelMessages(prompt)
+                    messages: prompt
                 }
             }
         }
@@ -455,18 +239,12 @@ module.exports = function (config, prompt, callback , eventcallback , extra ) {
             };
         }        
         if( systemMessage ) {
-            messages.push({ role: systemMessage.role, content: systemMessage.content || "" });
+            messages.push(systemMessage);
         }
         if( userMessage ) {
-            var userContent = userMessage.content;
-            if (userContent === undefined || userContent === null) {
-                userContent = "";
-            } else if (typeof userContent !== "string" && !Array.isArray(userContent)) {
-                userContent = JSON.stringify(userContent);
-            }
-            messages.push({ role: userMessage.role, content: userContent });
+            messages.push(userMessage);
         }
-        newArgs.messages = messages;
+        newArgs.messages = messages; //
         args = newArgs;
     }
     if( extra ) {
@@ -496,30 +274,6 @@ module.exports = function (config, prompt, callback , eventcallback , extra ) {
         }
         //abortSignal - look at implementing
         //Tool Calling - loop at implementing - need some examples 
-    }
-    if (Array.isArray(args.messages) && args.messages.length) {
-        const toTextParts = function(content) {
-            if (content === undefined || content === null) {
-                return [{ type: "text", text: "" }];
-            }
-            if (Array.isArray(content)) {
-                return content;
-            }
-            if (typeof content === "string") {
-                return [{ type: "text", text: content }];
-            }
-            return [{ type: "text", text: JSON.stringify(content) }];
-        }
-        const needsConversion = args.messages.some((msg) => msg && msg.role && msg.parts);
-        if (needsConversion) {
-            const uiMessages = args.messages.map((msg) => {
-                if (msg && msg.parts) {
-                    return msg;
-                }
-                return { role: msg && msg.role ? msg.role : "user", parts: toTextParts(msg ? msg.content : "") };
-            });
-            args.messages = ai.convertToModelMessages(uiMessages);
-        }
     }
     const handlers = {
         //-------------------------------------------------------------------------------------------
@@ -906,7 +660,7 @@ module.exports = function (config, prompt, callback , eventcallback , extra ) {
         //-------------------------------------------------------------------------------------------
         // XAI text prompt driver
         "xai": function (config, prompt, callback) {
-            import('@ai-sdk/xai ').then((module) => {
+            import('@ai-sdk/xai').then((module) => {
                 const createXai = module.createXai;
                 // Initialize the OpenAI client with your API key
                 const settings = {
@@ -932,7 +686,7 @@ module.exports = function (config, prompt, callback , eventcallback , extra ) {
         //-------------------------------------------------------------------------------------------
         // Mistral  text prompt driver
         "mistral": function (config, prompt, callback) {
-            import('@ai-sdk/mistral ').then((module) => {
+            import('@ai-sdk/mistral').then((module) => {
                 const createMistral = module.createMistral;
                 // Initialize the OpenAI client with your API key
                 const settings = {
@@ -957,10 +711,39 @@ module.exports = function (config, prompt, callback , eventcallback , extra ) {
             });
         }
     };
+    const normalizeMessagesIfNeeded = function(done) {
+        if (!Array.isArray(args.messages)) {
+            done();
+            return;
+        }
+        var hasUiParts = false;
+        for (var i = 0; i < args.messages.length; ++i) {
+            if (args.messages[i] && Array.isArray(args.messages[i].parts)) {
+                hasUiParts = true;
+                break;
+            }
+        }
+        if (!hasUiParts) {
+            done();
+            return;
+        }
+        import('ai').then(async (aiModule) => {
+            try {
+                args.messages = await aiModule.convertToModelMessages(args.messages);
+                done();
+            } catch (error) {
+                callback(error.message, null);
+            }
+        }).catch((error) => {
+            callback(error.message, null);
+        });
+    };
     // Resolve the provider and call the specific dynamic handler
-    if (handlers[config.provider]) {
-        handlers[config.provider](config, prompt, callback);
-    } else {
-        callback("No handler for provider " + config.provider, null);
-    }
+    normalizeMessagesIfNeeded(function() {
+        if (handlers[config.provider]) {
+            handlers[config.provider](config, prompt, callback);
+        } else {
+            callback("No handler for provider " + config.provider, null);
+        }
+    });
 };

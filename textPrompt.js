@@ -34,10 +34,9 @@ module.exports = function (config, prompt, callback , extra ) {
     if( Array.isArray(prompt) ) {
         if(  prompt.length ) {
             if( prompt[0].role ) {
-                var ai = require('ai');
                 args = {
                     model:null,
-                    messages: ai.convertToModelMessages(prompt)
+                    messages: prompt
                 }
             }
         }
@@ -536,7 +535,7 @@ module.exports = function (config, prompt, callback , extra ) {
         //-------------------------------------------------------------------------------------------
         // XAI text prompt driver
         "xai": function (config, prompt, callback) {
-            import('@ai-sdk/xai ').then((module) => {
+            import('@ai-sdk/xai').then((module) => {
                 const createXai = module.createXai;
                 // Initialize the OpenAI client with your API key
                 const settings = {
@@ -574,7 +573,7 @@ module.exports = function (config, prompt, callback , extra ) {
         //-------------------------------------------------------------------------------------------
         // Mistral  text prompt driver
         "mistral": function (config, prompt, callback) {
-            import('@ai-sdk/mistral ').then((module) => {
+            import('@ai-sdk/mistral').then((module) => {
                 const createMistral = module.createMistral;
                 // Initialize the OpenAI client with your API key
                 const settings = {
@@ -610,10 +609,39 @@ module.exports = function (config, prompt, callback , extra ) {
             });
         }
     };
+    const normalizeMessagesIfNeeded = function(done) {
+        if (!Array.isArray(args.messages)) {
+            done();
+            return;
+        }
+        var hasUiParts = false;
+        for (var i = 0; i < args.messages.length; ++i) {
+            if (args.messages[i] && Array.isArray(args.messages[i].parts)) {
+                hasUiParts = true;
+                break;
+            }
+        }
+        if (!hasUiParts) {
+            done();
+            return;
+        }
+        import('ai').then(async (aiModule) => {
+            try {
+                args.messages = await aiModule.convertToModelMessages(args.messages);
+                done();
+            } catch (error) {
+                callback(error.message, null);
+            }
+        }).catch((error) => {
+            callback(error.message, null);
+        });
+    };
     // Resolve the provider and call the specific dynamic handler
-    if (handlers[config.provider]) {
-        handlers[config.provider](config, prompt, callback);
-    } else {
-        callback("No handler for provider " + config.provider, null);
-    }
+    normalizeMessagesIfNeeded(function() {
+        if (handlers[config.provider]) {
+            handlers[config.provider](config, prompt, callback);
+        } else {
+            callback("No handler for provider " + config.provider, null);
+        }
+    });
 };

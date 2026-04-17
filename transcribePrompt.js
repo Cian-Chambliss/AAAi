@@ -467,7 +467,7 @@ module.exports = function (config, audio, callback , extra ) {
         //-------------------------------------------------------------------------------------------
         // XAI text prompt driver
         "xai": function (config, callback) {
-            import('@ai-sdk/xai ').then((module) => {
+            import('@ai-sdk/xai').then((module) => {
                 const createXai = module.createXai;
                 // Initialize the OpenAI client with your API key
                 const settings = {
@@ -505,7 +505,7 @@ module.exports = function (config, audio, callback , extra ) {
         //-------------------------------------------------------------------------------------------
         // Mistral  text prompt driver
         "mistral": function (config, callback) {
-            import('@ai-sdk/mistral ').then((module) => {
+            import('@ai-sdk/mistral').then((module) => {
                 const createMistral = module.createMistral;
                 // Initialize the OpenAI client with your API key
                 const settings = {
