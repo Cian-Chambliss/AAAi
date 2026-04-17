@@ -1,0 +1,26 @@
+{
+    "properties": [
+        {
+            "name": "apikey",
+            "label" : "API Key" ,
+            "description": "Optional API key for LM Studio (not required by default).",
+            "optional": true
+        },
+        {
+            "name": "headers",
+            "description": "headers to pass to the request.",
+            "optional": true
+        },
+        {
+            "name": "baseurl",
+            "description": "LM Studio base URL (default: http://localhost:1234/v1).",
+            "optional": true
+        }
+    ],
+    "models": [
+        "lmstudio"
+    ],
+    "modeldescriptions": [
+        { "name": "lmstudio", "description": "LM Studio OpenAI-compatible endpoint.", "features": ["llm"] }
+    ]
+}
