@@ -748,6 +748,9 @@ module.exports = function (config, prompt, callback , eventcallback , extra ) {
             callback(error.message, null);
         });
     };
+    if (Array.isArray(args.messages) && Object.prototype.hasOwnProperty.call(args, "prompt")) {
+        delete args.prompt;
+    }
     // Resolve the provider and call the specific dynamic handler
     normalizeMessagesIfNeeded(function() {
         if (handlers[config.provider]) {
