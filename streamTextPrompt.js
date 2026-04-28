@@ -80,7 +80,7 @@ module.exports = function (config, prompt, callback , eventcallback , extra ) {
                         }
                     }
                     var nstep = 1;
-                    if( config.provider != "openai" && args.maxSteps > 1 ) {
+                    if( args.maxSteps > 1 ) {
                         nstep = args.maxSteps;
                     }
                     for( var stepNo = 0 ; stepNo < nstep; ++stepNo ) {
