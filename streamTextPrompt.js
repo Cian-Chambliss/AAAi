@@ -200,7 +200,9 @@ module.exports = function (config, prompt, callback , eventcallback , extra ) {
             }
         }
     } else if (typeof prompt === 'object' &&  prompt !== null) {
-        if( prompt.prompt ) {
+        if( Object.prototype.hasOwnProperty.call(prompt, "prompt")
+        || Object.prototype.hasOwnProperty.call(prompt, "messages")
+        ) {
             const keys = Object.keys(prompt);
             for( var i = 0 ; i < keys.length ; ++i )
             {
@@ -219,15 +221,19 @@ module.exports = function (config, prompt, callback , eventcallback , extra ) {
         };
         for( var i = 0 ; i < keys.length ; ++i ) {
             if( keys[i] == "prompt" ) {
-                userMessage = {
-                    role : "user",
-                    content : args[keys[i]]
-                };
+                if( args[keys[i]] !== undefined && args[keys[i]] !== null ) {
+                    userMessage = {
+                        role : "user",
+                        content : args[keys[i]]
+                    };
+                }
             } else if( keys[i] == "system" ) {
-                systemMessage = {
-                    role : "system",
-                    content : args[keys[i]]
-                };
+                if( args[keys[i]] !== undefined && args[keys[i]] !== null ) {
+                    systemMessage = {
+                        role : "system",
+                        content : args[keys[i]]
+                    };
+                }
             } else {
                 newArgs[keys[i]] = args[keys[i]];
             }
@@ -243,6 +249,10 @@ module.exports = function (config, prompt, callback , eventcallback , extra ) {
         }
         if( userMessage ) {
             messages.push(userMessage);
+        }
+        if( !messages.length ) {
+            callback("No prompt or messages provided.", null);
+            return;
         }
         newArgs.messages = messages; //
         args = newArgs;
