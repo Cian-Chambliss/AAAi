@@ -65,8 +65,127 @@ module.exports = function (config, prompt, callback , eventcallback , extra ) {
                 var streamResult = null;
                 var allText = "";
                 if( extra && extra.tools ) {
+                    const normalizeToolResultOutput = function(output) {
+                        if( output && typeof output === "object" && output.type && output.value !== undefined ) {
+                            return output;
+                        }
+                        if( output && typeof output === "object" ) {
+                            return {
+                                type: "json",
+                                value: output
+                            };
+                        }
+                        return {
+                            type: "text",
+                            value: output === undefined || output === null ? "" : String(output)
+                        };
+                    };
+                    const normalizeModelMessages = function(inputMessages) {
+                        const source = Array.isArray(inputMessages) ? inputMessages : [];
+                        const out = [];
+                        for( var mi = 0 ; mi < source.length ; ++mi ) {
+                            var msg = source[mi];
+                            if( !msg || typeof msg !== "object" ) {
+                                continue;
+                            }
+                            var role = String(msg.role || "").trim();
+                            if( !role.length ) {
+                                continue;
+                            }
+                            var content = msg.content;
+                            if( content === undefined && Array.isArray(msg.parts) ) {
+                                content = msg.parts;
+                            }
+                            if( role === "system" ) {
+                                out.push({ role: "system", content: String(content === undefined || content === null ? "" : content) });
+                                continue;
+                            }
+                            if( role === "user" ) {
+                                if( typeof content === "string" ) {
+                                    out.push({ role: "user", content: content });
+                                    continue;
+                                }
+                                if( Array.isArray(content) ) {
+                                    var userParts = [];
+                                    for( var ui = 0 ; ui < content.length ; ++ui ) {
+                                        var up = content[ui];
+                                        if( !up || typeof up !== "object" ) {
+                                            continue;
+                                        }
+                                        if( up.type === "text" && typeof up.text === "string" ) {
+                                            userParts.push({ type: "text", text: up.text });
+                                        } else if( up.type === "file" && typeof up.data === "string" && typeof up.mediaType === "string" ) {
+                                            userParts.push({ type: "file", data: up.data, mediaType: up.mediaType });
+                                        } else if( up.type === "image" && typeof up.image === "string" ) {
+                                            userParts.push({ type: "image", image: up.image, mediaType: up.mediaType });
+                                        }
+                                    }
+                                    out.push({ role: "user", content: userParts.length ? userParts : String(JSON.stringify(content)) });
+                                    continue;
+                                }
+                                out.push({ role: "user", content: String(content === undefined || content === null ? "" : content) });
+                                continue;
+                            }
+                            if( role === "assistant" ) {
+                                if( typeof content === "string" ) {
+                                    out.push({ role: "assistant", content: content });
+                                    continue;
+                                }
+                                if( Array.isArray(content) ) {
+                                    var assistantParts = [];
+                                    for( var ai = 0 ; ai < content.length ; ++ai ) {
+                                        var ap = content[ai];
+                                        if( !ap || typeof ap !== "object" ) {
+                                            continue;
+                                        }
+                                        if( ap.type === "text" && typeof ap.text === "string" ) {
+                                            assistantParts.push({ type: "text", text: ap.text });
+                                        } else if( ap.type === "tool-call" && ap.toolCallId && ap.toolName ) {
+                                            assistantParts.push({
+                                                type: "tool-call",
+                                                toolCallId: String(ap.toolCallId),
+                                                toolName: String(ap.toolName),
+                                                input: ap.input !== undefined ? ap.input : (ap.args !== undefined ? ap.args : {})
+                                            });
+                                        } else if( ap.type === "tool-result" && ap.toolCallId && ap.toolName ) {
+                                            assistantParts.push({
+                                                type: "tool-result",
+                                                toolCallId: String(ap.toolCallId),
+                                                toolName: String(ap.toolName),
+                                                output: normalizeToolResultOutput(ap.output !== undefined ? ap.output : ap.result)
+                                            });
+                                        }
+                                    }
+                                    out.push({ role: "assistant", content: assistantParts.length ? assistantParts : String(JSON.stringify(content)) });
+                                    continue;
+                                }
+                                out.push({ role: "assistant", content: String(content === undefined || content === null ? "" : content) });
+                                continue;
+                            }
+                            if( role === "tool" ) {
+                                var toolPartsSrc = Array.isArray(content) ? content : [];
+                                var toolParts = [];
+                                for( var ti = 0 ; ti < toolPartsSrc.length ; ++ti ) {
+                                    var tp = toolPartsSrc[ti];
+                                    if( !tp || typeof tp !== "object" || !tp.toolCallId || !tp.toolName ) {
+                                        continue;
+                                    }
+                                    toolParts.push({
+                                        type: "tool-result",
+                                        toolCallId: String(tp.toolCallId),
+                                        toolName: String(tp.toolName),
+                                        output: normalizeToolResultOutput(tp.output !== undefined ? tp.output : tp.result)
+                                    });
+                                }
+                                if( toolParts.length ) {
+                                    out.push({ role: "tool", content: toolParts });
+                                }
+                            }
+                        }
+                        return out;
+                    };
                     var baseMessages = Array.isArray(args.messages) ? args.messages.slice() : [];
-                    var messages = baseMessages.slice();
+                    var messages = normalizeModelMessages(baseMessages);
                     var handledToolCallIds = new Set();
                     for( var mi = 0 ; mi < messages.length ; ++mi ) {
                         var msg = messages[mi];
@@ -141,9 +260,18 @@ module.exports = function (config, prompt, callback , eventcallback , extra ) {
                                 }
                             }
                         }
-                        const streamResponsed = await streamResult.response;
-                        if( streamResponsed && Array.isArray(streamResponsed.messages) && streamResponsed.messages.length ) {
-                            messages = messages.concat(streamResponsed.messages);
+                        if( toolCalls.length > 0 ) {
+                            messages.push({
+                                role: "assistant",
+                                content: toolCalls.map(function(call) {
+                                    return {
+                                        type: "tool-call",
+                                        toolCallId: String(call.toolCallId || ("toolcall_" + stepNo + "_" + call.toolName)),
+                                        toolName: String(call.toolName || ""),
+                                        input: call.input !== undefined ? call.input : (call.args !== undefined ? call.args : {})
+                                    };
+                                }).filter(function(part) { return part.toolName.length > 0; })
+                            });
                         }
                         if( toolResults.length > 0 ) {
                             for( var tr = 0 ; tr < toolResults.length ; ++tr ) {
